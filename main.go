@@ -35,7 +35,7 @@ func Create(name string, cfg *Config) (certPEM, keyPEM []byte, err error) {
 		return
 	}
 
-	keyPEM = keyToPEM(keyDER)
+	keyPEM = KeyToPEM(keyDER)
 
 	cert, err := certTemplate(name, cfg)
 	if err != nil {
@@ -47,7 +47,7 @@ func Create(name string, cfg *Config) (certPEM, keyPEM []byte, err error) {
 		return
 	}
 
-	certPEM = certToPEM(der)
+	certPEM = CertificateToPEM(der)
 
 	return
 }
@@ -64,7 +64,7 @@ func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error)
 		return
 	}
 
-	keyPEM = keyToPEM(keyDER)
+	keyPEM = KeyToPEM(keyDER)
 
 	cert, err := certTemplate(name, cfg)
 	if err != nil {
@@ -76,7 +76,7 @@ func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error)
 		return
 	}
 
-	csrPEM = csrToPEM(der)
+	csrPEM = CSRToPEM(der)
 
 	return
 }
@@ -96,7 +96,7 @@ func Sign(csr *x509.CertificateRequest, cfg *Config, caCert *x509.Certificate, c
 		return nil, err
 	}
 
-	return certToPEM(der), nil
+	return CertificateToPEM(der), nil
 }
 
 // apply values of CSR to certificate

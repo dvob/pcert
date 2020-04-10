@@ -22,15 +22,15 @@ func toPEM(blockType string, bytes []byte) []byte {
 	return pem.EncodeToMemory(block)
 }
 
-func certToPEM(derBytes []byte) []byte {
+func CertificateToPEM(derBytes []byte) []byte {
 	return toPEM(certificateBlockType, derBytes)
 }
 
-func csrToPEM(derBytes []byte) []byte {
+func CSRToPEM(derBytes []byte) []byte {
 	return toPEM(certificateRequestBlockType, derBytes)
 }
 
-func keyToPEM(derBytes []byte) []byte {
+func KeyToPEM(derBytes []byte) []byte {
 	return toPEM(privateKeyBlockType, derBytes)
 }
 
@@ -47,7 +47,7 @@ func fromPEM(blockType string, bytes []byte) ([]byte, error) {
 	return block.Bytes, nil
 }
 
-func keyFromPEM(pem []byte) (key interface{}, err error) {
+func KeyFromPEM(pem []byte) (key interface{}, err error) {
 	der, err := fromPEM(privateKeyBlockType, pem)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func keyFromPEM(pem []byte) (key interface{}, err error) {
 	return x509.ParsePKCS8PrivateKey(der)
 }
 
-func csrFromPEM(pem []byte) (*x509.CertificateRequest, error) {
+func CSRFromPEM(pem []byte) (*x509.CertificateRequest, error) {
 	der, err := fromPEM(certificateRequestBlockType, pem)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func csrFromPEM(pem []byte) (*x509.CertificateRequest, error) {
 	return x509.ParseCertificateRequest(der)
 }
 
-func certFromPEM(pem []byte) (*x509.Certificate, error) {
+func CertificateFromPEM(pem []byte) (*x509.Certificate, error) {
 	der, err := fromPEM(certificateBlockType, pem)
 	if err != nil {
 		return nil, err
