@@ -4,27 +4,10 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
-	"fmt"
-	"math/big"
-	"net"
-	"net/url"
-	"time"
 )
 
-var defaultValidityPeriod = time.Hour * 24 * 365
-
-type Config struct {
-	DNSNames       []string
-	EmailAddresses []string
-	IPAddresses    []net.IP
-	URIs           []*url.URL
-	NotBefore      time.Time
-	NotAfter       time.Time
-}
-
 // create self signed certificate (e.g. CA)
-func Create(name string, cfg *Config) (certPEM, keyPEM []byte, err error) {
+func Create(name string, template *x509.Certificate) (certPEM, keyPEM []byte, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return
@@ -37,7 +20,7 @@ func Create(name string, cfg *Config) (certPEM, keyPEM []byte, err error) {
 
 	keyPEM = KeyToPEM(keyDER)
 
-	cert, err := certTemplate(name, cfg)
+	cert, err := DefaultWithName(name, template)
 	if err != nil {
 		return
 	}
@@ -53,7 +36,7 @@ func Create(name string, cfg *Config) (certPEM, keyPEM []byte, err error) {
 }
 
 // create CSR
-func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error) {
+func Request(name string, template *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return
@@ -66,7 +49,7 @@ func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error)
 
 	keyPEM = KeyToPEM(keyDER)
 
-	cert, err := certTemplate(name, cfg)
+	cert, err := DefaultWithName(name, template)
 	if err != nil {
 		return
 	}
@@ -82,9 +65,9 @@ func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error)
 }
 
 // sign a CSR
-func Sign(csr *x509.CertificateRequest, cfg *Config, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
+func Sign(csr *x509.CertificateRequest, template *x509.Certificate, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
 	// name will be set from csr
-	cert, err := certTemplate("", cfg)
+	cert, err := DefaultWithName("", template)
 	if err != nil {
 		return nil, err
 	}
@@ -123,34 +106,4 @@ func certToCSR(cert *x509.Certificate) *x509.CertificateRequest {
 		URIs:               cert.URIs,
 		ExtraExtensions:    cert.ExtraExtensions,
 	}
-}
-
-func certTemplate(name string, cfg *Config) (*x509.Certificate, error) {
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number: %w", err)
-	}
-
-	if cfg.NotBefore.IsZero() {
-		cfg.NotBefore = time.Now()
-	}
-
-	if cfg.NotAfter.IsZero() {
-		cfg.NotAfter = time.Now().Add(defaultValidityPeriod)
-	}
-
-	tmpl := x509.Certificate{
-		SerialNumber:          serialNumber,
-		Subject:               pkix.Name{CommonName: name},
-		SignatureAlgorithm:    x509.SHA256WithRSA,
-		NotBefore:             cfg.NotBefore,
-		NotAfter:              cfg.NotAfter,
-		BasicConstraintsValid: true,
-		IPAddresses:           cfg.IPAddresses,
-		DNSNames:              cfg.DNSNames,
-		EmailAddresses:        cfg.EmailAddresses,
-		URIs:                  cfg.URIs,
-	}
-	return &tmpl, nil
 }

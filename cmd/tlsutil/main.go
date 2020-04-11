@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,7 +20,7 @@ type app struct {
 	cert     string
 	key      string
 	stdout   bool
-	config   *tlsutil.Config
+	config   *x509.Certificate
 }
 
 func bindCertFileFlag(fs *pflag.FlagSet, cfg *app) {
@@ -47,7 +48,7 @@ func main() {
 
 func newRootCmd() *cobra.Command {
 	var cfg = &app{
-		config: &tlsutil.Config{},
+		config: &x509.Certificate{},
 	}
 	cmd := &cobra.Command{
 		Use:   "tlsutil",
