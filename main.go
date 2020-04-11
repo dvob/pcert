@@ -82,7 +82,7 @@ func Request(name string, cfg *Config) (csrPEM []byte, keyPEM []byte, err error)
 }
 
 // sign a CSR
-func Sign(csr *x509.CertificateRequest, cfg *Config, caCert *x509.Certificate, caKey interface{}) (certPEM []byte, err error) {
+func Sign(csr *x509.CertificateRequest, cfg *Config, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
 	// name will be set from csr
 	cert, err := certTemplate("", cfg)
 	if err != nil {
@@ -91,7 +91,7 @@ func Sign(csr *x509.CertificateRequest, cfg *Config, caCert *x509.Certificate, c
 
 	applyCSR(csr, cert)
 
-	der, err := x509.CreateCertificate(rand.Reader, cert, caCert, cert.PublicKey, caKey)
+	der, err := x509.CreateCertificate(rand.Reader, cert, signCert, cert.PublicKey, signKey)
 	if err != nil {
 		return nil, err
 	}

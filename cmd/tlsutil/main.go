@@ -14,12 +14,12 @@ import (
 const ENV_PREFIX = "TLSUTIL_"
 
 type app struct {
-	caCert string
-	caKey  string
-	cert   string
-	key    string
-	stdout bool
-	config *tlsutil.Config
+	signCert string
+	signKey  string
+	cert     string
+	key      string
+	stdout   bool
+	config   *tlsutil.Config
 }
 
 func bindCertFileFlag(fs *pflag.FlagSet, cfg *app) {
@@ -30,9 +30,9 @@ func bindKeyFileFlag(fs *pflag.FlagSet, cfg *app) {
 	fs.StringVar(&cfg.key, "key", "", "Output file for the key. Defaults to <name>.key")
 }
 
-func bindCAFileFlags(fs *pflag.FlagSet, cfg *app) {
-	fs.StringVar(&cfg.caCert, "ca-cert", "ca.crt", "Certificate used to sign the certificate")
-	fs.StringVar(&cfg.caKey, "ca-key", "ca.key", "Key used to sign the certificates")
+func bindSignFileFlags(fs *pflag.FlagSet, cfg *app) {
+	fs.StringVar(&cfg.signCert, "sign-cert", "ca.crt", "Certificate used to sign the certificate")
+	fs.StringVar(&cfg.signKey, "sign-key", "ca.key", "Key used to sign the certificates")
 }
 
 func defaultSetting(setting *string, value string) {
@@ -83,7 +83,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 		Short: "create a signed certificate",
 		Long: `Creates a signed certificate and a coresponding key. If --self-sign or
 --ca is used it creates a self signed certificate. Otherwise it uses 
---ca-cert and --ca-key to sign the certificate.`,
+--sign-cert and --sign-key to sign the certificate.`,
 		Args: cobra.ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			name := args[0]
@@ -105,7 +105,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 			return err
 		},
 	}
-	bindCAFileFlags(cmd.Flags(), cfg)
+	bindSignFileFlags(cmd.Flags(), cfg)
 	bindKeyFileFlag(cmd.Flags(), cfg)
 	bindCertFileFlag(cmd.Flags(), cfg)
 	tlsutil.BindFlags(cmd.Flags(), cfg.config, "")
@@ -169,11 +169,11 @@ func newSignCmd(cfg *app) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			caCertPEM, err := ioutil.ReadFile(cfg.caCert)
+			signCertPEM, err := ioutil.ReadFile(cfg.signCert)
 			if err != nil {
 				return err
 			}
-			caKeyPEM, err := ioutil.ReadFile(cfg.caKey)
+			signKeyPEM, err := ioutil.ReadFile(cfg.signKey)
 			if err != nil {
 				return err
 			}
@@ -183,17 +183,17 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			caCert, err := tlsutil.CertificateFromPEM(caCertPEM)
+			signCert, err := tlsutil.CertificateFromPEM(signCertPEM)
 			if err != nil {
 				return err
 			}
 
-			caKey, err := tlsutil.KeyFromPEM(caKeyPEM)
+			signKey, err := tlsutil.KeyFromPEM(signKeyPEM)
 			if err != nil {
 				return err
 			}
 
-			cert, err := tlsutil.Sign(csr, cfg.config, caCert, caKey)
+			cert, err := tlsutil.Sign(csr, cfg.config, signCert, signKey)
 			if err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func newSignCmd(cfg *app) *cobra.Command {
 		},
 	}
 	bindCertFileFlag(cmd.Flags(), cfg)
-	bindCAFileFlags(cmd.Flags(), cfg)
+	bindSignFileFlags(cmd.Flags(), cfg)
 	return cmd
 }
 
