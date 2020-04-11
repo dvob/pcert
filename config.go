@@ -45,33 +45,3 @@ func (us *uriSliceValue) Set(urlRawStr string) error {
 	*us.urls = append(*us.urls, urls...)
 	return nil
 }
-
-func (us *uriSliceValue) Append(urlStr string) error {
-	parsedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return fmt.Errorf("from Append: %w", err)
-	}
-	*us.urls = append(*us.urls, parsedURL)
-	return nil
-}
-
-func (us *uriSliceValue) Replace(urlStrList []string) error {
-	var urls []*url.URL
-	for _, urlStr := range urlStrList {
-		u, err := url.Parse(urlStr)
-		if err != nil {
-			return fmt.Errorf("from Replace: %w", err)
-		}
-		urls = append(urls, u)
-	}
-	*us.urls = urls
-	return nil
-}
-
-func (us *uriSliceValue) GetSlice() []string {
-	urlStrList := make([]string, len(*us.urls))
-	for _, u := range *us.urls {
-		urlStrList = append(urlStrList, u.String())
-	}
-	return urlStrList
-}
