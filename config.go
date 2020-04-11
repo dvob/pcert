@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/pflag"
 )
@@ -17,6 +18,8 @@ func BindFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix string) {
 	fs.IPSliceVar(&cert.IPAddresses, prefix+"ip", []net.IP{}, "IP subject alternative name")
 	fs.Var(newURISliceValue(&cert.URIs), prefix+"uri", "URI subject alternative name")
 	fs.Var(newSignAlgValue(&cert.SignatureAlgorithm), prefix+"sign-alg", "Signature Algorithm")
+	fs.Var(newTimeValue(&cert.NotBefore), prefix+"not-before", "Not valid before time in RFC3339 format")
+	fs.Var(newTimeValue(&cert.NotAfter), prefix+"not-after", "Not valid after time in RFC3339 format")
 }
 
 type uriSliceValue struct {
@@ -109,4 +112,34 @@ func getSignatureAlgorithms() []string {
 		algs = append(algs, algStr)
 	}
 	return algs
+}
+
+type timeValue struct {
+	value *time.Time
+}
+
+func newTimeValue(t *time.Time) *timeValue {
+	return &timeValue{
+		value: t,
+	}
+}
+
+func (t *timeValue) Type() string {
+	return "time"
+}
+
+func (t *timeValue) String() string {
+	if t.value.IsZero() {
+		return ""
+	}
+	return t.value.Format(time.RFC3339)
+}
+
+func (t *timeValue) Set(timeStr string) error {
+	parsedTime, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		return err
+	}
+	*t.value = parsedTime
+	return nil
 }
