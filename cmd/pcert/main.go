@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dsbrng25b/tlsutil"
+	tlsutil "github.com/dsbrng25b/pcert"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
