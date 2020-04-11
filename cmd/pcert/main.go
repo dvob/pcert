@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const ENV_PREFIX = "TLSUTIL_"
+const ENV_PREFIX = "PCERT_"
 
 type app struct {
 	signCert string
@@ -53,7 +53,7 @@ func newRootCmd() *cobra.Command {
 		},
 	}
 	cmd := &cobra.Command{
-		Use:   "tlsutil",
+		Use:   "pcert",
 		Short: "tlsutil helps you to quickly create and sign certificates",
 		Long: `The tlsutil command helps you to create and sign certificates and CSRs.
 All options can also be set as environment variable with the TLSUTIL_
