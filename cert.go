@@ -10,7 +10,7 @@ import (
 )
 
 // create self signed certificate (e.g. CA)
-func Create(name string, template, signCert *x509.Certificate, keyConfig KeyConfig, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+func Create(cert, signCert *x509.Certificate, keyConfig KeyConfig, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
 	priv, pub, err := GenerateKey(keyConfig)
 	if err != nil {
 		return
@@ -23,7 +23,7 @@ func Create(name string, template, signCert *x509.Certificate, keyConfig KeyConf
 
 	keyPEM = KeyToPEM(keyDER)
 
-	cert, err := DefaultWithName(name, template)
+	err = Default(cert)
 	if err != nil {
 		return
 	}
@@ -53,7 +53,7 @@ func Create(name string, template, signCert *x509.Certificate, keyConfig KeyConf
 }
 
 // create CSR
-func Request(name string, template *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
+func Request(cert *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return
@@ -66,7 +66,7 @@ func Request(name string, template *x509.Certificate) (csrPEM []byte, keyPEM []b
 
 	keyPEM = KeyToPEM(keyDER)
 
-	cert, err := DefaultWithName(name, template)
+	err = Default(cert)
 	if err != nil {
 		return
 	}
@@ -82,9 +82,9 @@ func Request(name string, template *x509.Certificate) (csrPEM []byte, keyPEM []b
 }
 
 // sign a CSR
-func Sign(csr *x509.CertificateRequest, template *x509.Certificate, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
+func Sign(csr *x509.CertificateRequest, cert *x509.Certificate, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
 	// name will be set from csr
-	cert, err := DefaultWithName("", template)
+	err = Default(cert)
 	if err != nil {
 		return nil, err
 	}

@@ -92,10 +92,10 @@ func newCreateCmd(cfg *app) *cobra.Command {
 			name := args[0]
 			defaultSetting(&cfg.cert, name+".crt")
 			defaultSetting(&cfg.key, name+".key")
+			defaultSetting(&cfg.config.Subject.CommonName, args[0])
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			cert, key, err := pcert.Create(name, cfg.config, nil, cfg.keyConfig, nil)
+			cert, key, err := pcert.Create(cfg.config, nil, cfg.keyConfig, nil)
 			if err != nil {
 				return err
 			}
@@ -131,10 +131,10 @@ func newRequestCmd(cfg *app) *cobra.Command {
 			name := args[0]
 			defaultSetting(&cfg.key, name+".key")
 			defaultSetting(&csrFile, name+".csr")
+			defaultSetting(&cfg.config.Subject.CommonName, args[0])
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			csr, key, err := pcert.Request(name, cfg.config)
+			csr, key, err := pcert.Request(cfg.config)
 			if err != nil {
 				return err
 			}

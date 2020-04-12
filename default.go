@@ -17,14 +17,11 @@ var (
 	defaultExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
 )
 
-func DefaultWithName(name string, template *x509.Certificate) (*x509.Certificate, error) {
-	if template.Subject.CommonName == "" {
-		template.Subject.CommonName = name
-	}
+func Default(template *x509.Certificate) error {
 	defaultTime(template)
 	defaultKeyUsage(template)
-	_ = defaultSerialNumber(template)
-	return template, nil
+	err := defaultSerialNumber(template)
+	return err
 }
 
 func defaultCA(c *x509.Certificate) {
