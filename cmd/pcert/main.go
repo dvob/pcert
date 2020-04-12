@@ -49,9 +49,7 @@ func main() {
 
 func newRootCmd() *cobra.Command {
 	var cfg = &app{
-		config: &x509.Certificate{
-			SignatureAlgorithm: x509.SHA256WithRSA,
-		},
+		config:    &x509.Certificate{},
 		keyConfig: tlsutil.NewDefaultKeyConfig(),
 	}
 	cmd := &cobra.Command{

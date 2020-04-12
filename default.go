@@ -31,10 +31,6 @@ func Default(c *x509.Certificate) {
 	if c.NotAfter.IsZero() {
 		c.NotAfter = time.Now().Add(DefaultValidityPeriod)
 	}
-
-	if c.SignatureAlgorithm == x509.UnknownSignatureAlgorithm {
-		c.SignatureAlgorithm = DefaultSignatureAlgorithm
-	}
 }
 
 func defaultSerialNumber(c *x509.Certificate) {
