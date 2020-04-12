@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dsbrng25b/pcert"
 	"github.com/spf13/cobra"
@@ -19,7 +20,7 @@ type app struct {
 	signKey   string
 	cert      string
 	key       string
-	stdout    bool
+	expiry    time.Duration
 	config    *x509.Certificate
 	keyConfig pcert.KeyConfig
 }
@@ -37,6 +38,26 @@ func bindSignFileFlags(fs *pflag.FlagSet, cfg *app) {
 	fs.StringVar(&cfg.signKey, "sign-key", "ca.key", "Key used to sign the certificates")
 }
 
+func bindExpiryFlag(fs *pflag.FlagSet, cfg *app) {
+	fs.Var(newDurationValue(&cfg.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
+}
+
+func setExpiry(cert *x509.Certificate, expiry time.Duration) {
+	// expiry no set
+	if expiry == time.Duration(0) {
+		return
+	}
+
+	if cert.NotBefore.IsZero() {
+		cert.NotBefore = time.Now()
+	}
+
+	if cert.NotAfter.IsZero() {
+		cert.NotAfter = cert.NotBefore.Add(expiry)
+		return
+	}
+}
+
 func defaultSetting(setting *string, value string) {
 	if *setting == "" {
 		*setting = value
@@ -50,6 +71,7 @@ func main() {
 func newRootCmd() *cobra.Command {
 	var cfg = &app{
 		config:    &x509.Certificate{},
+		expiry:    pcert.DefaultValidityPeriod,
 		keyConfig: pcert.NewDefaultKeyConfig(),
 	}
 	cmd := &cobra.Command{
@@ -93,6 +115,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 			defaultSetting(&cfg.cert, name+".crt")
 			defaultSetting(&cfg.key, name+".key")
 			defaultSetting(&cfg.config.Subject.CommonName, args[0])
+			setExpiry(cfg.config, cfg.expiry)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cert, key, err := pcert.Create(cfg.config, nil, cfg.keyConfig, nil)
@@ -113,6 +136,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 	bindCertFileFlag(cmd.Flags(), cfg)
 	pcert.BindFlags(cmd.Flags(), cfg.config, "")
 	pcert.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
+	bindExpiryFlag(cmd.Flags(), cfg)
 	cmd.Flags().BoolVar(&selfSign, "self-sign", false, "Create a self-signed certificate")
 	cmd.Flags().BoolVar(&selfSign, "ca", false, "Create a CA. Same as self-signed")
 	return cmd
@@ -134,7 +158,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 			defaultSetting(&cfg.config.Subject.CommonName, args[0])
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			csr, key, err := pcert.Request(cfg.config)
+			csr, key, err := pcert.Request(cfg.config, cfg.keyConfig)
 			if err != nil {
 				return err
 			}
