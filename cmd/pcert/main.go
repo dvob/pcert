@@ -15,12 +15,13 @@ import (
 const ENV_PREFIX = "PCERT_"
 
 type app struct {
-	signCert string
-	signKey  string
-	cert     string
-	key      string
-	stdout   bool
-	config   *x509.Certificate
+	signCert  string
+	signKey   string
+	cert      string
+	key       string
+	stdout    bool
+	config    *x509.Certificate
+	keyConfig tlsutil.KeyConfig
 }
 
 func bindCertFileFlag(fs *pflag.FlagSet, cfg *app) {
@@ -51,6 +52,7 @@ func newRootCmd() *cobra.Command {
 		config: &x509.Certificate{
 			SignatureAlgorithm: x509.SHA256WithRSA,
 		},
+		keyConfig: tlsutil.NewDefaultKeyConfig(),
 	}
 	cmd := &cobra.Command{
 		Use:   "pcert",
@@ -95,7 +97,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			cert, key, err := tlsutil.Create(name, cfg.config)
+			cert, key, err := tlsutil.Create(name, cfg.config, nil, cfg.keyConfig, nil)
 			if err != nil {
 				return err
 			}
@@ -112,6 +114,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 	bindKeyFileFlag(cmd.Flags(), cfg)
 	bindCertFileFlag(cmd.Flags(), cfg)
 	tlsutil.BindFlags(cmd.Flags(), cfg.config, "")
+	tlsutil.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
 	cmd.Flags().BoolVar(&selfSign, "self-sign", false, "Create a self-signed certificate")
 	cmd.Flags().BoolVar(&selfSign, "ca", false, "Create a CA. Same as self-signed")
 	return cmd

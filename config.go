@@ -22,6 +22,11 @@ func BindFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix string) {
 	fs.Var(newTimeValue(&cert.NotAfter), prefix+"not-after", "Not valid after time in RFC3339 format")
 }
 
+func BindKeyFlags(fs *pflag.FlagSet, keyConfig *KeyConfig, prefix string) {
+	fs.StringVar(&keyConfig.Algorithm, prefix+"key-alg", keyConfig.Algorithm, "Key Algorithm")
+	fs.IntVar(&keyConfig.Size, prefix+"key-size", keyConfig.Size, "Key Size")
+}
+
 type uriSliceValue struct {
 	urls    *[]*url.URL
 	changed bool

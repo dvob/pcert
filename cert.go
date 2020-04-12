@@ -1,19 +1,20 @@
 package pcert
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 )
 
 // create self signed certificate (e.g. CA)
-func Create(name string, template *x509.Certificate) (certPEM, keyPEM []byte, err error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+func Create(name string, template, signCert *x509.Certificate, keyConfig KeyConfig, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+	priv, pub, err := GenerateKey(keyConfig)
 	if err != nil {
 		return
 	}
 
-	keyDER, err := x509.MarshalPKCS8PrivateKey(key)
+	keyDER, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
 		return
 	}
@@ -25,7 +26,14 @@ func Create(name string, template *x509.Certificate) (certPEM, keyPEM []byte, er
 		return
 	}
 
-	der, err := x509.CreateCertificate(rand.Reader, cert, cert, &key.PublicKey, key)
+	var der []byte
+	// If either signCert or signKey is missing we self sign the certificate
+	if signCert == nil || signKey == nil {
+		der, err = x509.CreateCertificate(rand.Reader, cert, cert, pub, priv)
+	} else {
+		der, err = x509.CreateCertificate(rand.Reader, cert, signCert, pub, signKey)
+	}
+
 	if err != nil {
 		return
 	}
