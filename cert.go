@@ -54,7 +54,7 @@ func Request(name string, template *x509.Certificate) (csrPEM []byte, keyPEM []b
 		return
 	}
 
-	der, err := x509.CreateCertificateRequest(rand.Reader, certToCSR(cert), key)
+	der, err := x509.CreateCertificateRequest(rand.Reader, toCSR(cert), key)
 	if err != nil {
 		return
 	}
@@ -96,7 +96,7 @@ func applyCSR(csr *x509.CertificateRequest, cert *x509.Certificate) {
 	cert.ExtraExtensions = csr.ExtraExtensions
 }
 
-func certToCSR(cert *x509.Certificate) *x509.CertificateRequest {
+func toCSR(cert *x509.Certificate) *x509.CertificateRequest {
 	return &x509.CertificateRequest{
 		SignatureAlgorithm: cert.SignatureAlgorithm,
 		Subject:            cert.Subject,
