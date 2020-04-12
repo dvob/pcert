@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	tlsutil "github.com/dsbrng25b/pcert"
+	"github.com/dsbrng25b/pcert"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -21,7 +21,7 @@ type app struct {
 	key       string
 	stdout    bool
 	config    *x509.Certificate
-	keyConfig tlsutil.KeyConfig
+	keyConfig pcert.KeyConfig
 }
 
 func bindCertFileFlag(fs *pflag.FlagSet, cfg *app) {
@@ -50,12 +50,12 @@ func main() {
 func newRootCmd() *cobra.Command {
 	var cfg = &app{
 		config:    &x509.Certificate{},
-		keyConfig: tlsutil.NewDefaultKeyConfig(),
+		keyConfig: pcert.NewDefaultKeyConfig(),
 	}
 	cmd := &cobra.Command{
 		Use:   "pcert",
-		Short: "tlsutil helps you to quickly create and sign certificates",
-		Long: `The tlsutil command helps you to create and sign certificates and CSRs.
+		Short: "pcert helps you to quickly create and sign certificates",
+		Long: `The pcert command helps you to create and sign certificates and CSRs.
 All options can also be set as environment variable with the TLSUTIL_
 prefix (e.g TLSUTIL_CERT instad of --cert).`,
 		TraverseChildren: true,
@@ -95,7 +95,7 @@ func newCreateCmd(cfg *app) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			cert, key, err := tlsutil.Create(name, cfg.config, nil, cfg.keyConfig, nil)
+			cert, key, err := pcert.Create(name, cfg.config, nil, cfg.keyConfig, nil)
 			if err != nil {
 				return err
 			}
@@ -111,8 +111,8 @@ func newCreateCmd(cfg *app) *cobra.Command {
 	bindSignFileFlags(cmd.Flags(), cfg)
 	bindKeyFileFlag(cmd.Flags(), cfg)
 	bindCertFileFlag(cmd.Flags(), cfg)
-	tlsutil.BindFlags(cmd.Flags(), cfg.config, "")
-	tlsutil.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
+	pcert.BindFlags(cmd.Flags(), cfg.config, "")
+	pcert.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
 	cmd.Flags().BoolVar(&selfSign, "self-sign", false, "Create a self-signed certificate")
 	cmd.Flags().BoolVar(&selfSign, "ca", false, "Create a CA. Same as self-signed")
 	return cmd
@@ -134,7 +134,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			csr, key, err := tlsutil.Request(name, cfg.config)
+			csr, key, err := pcert.Request(name, cfg.config)
 			if err != nil {
 				return err
 			}
@@ -148,7 +148,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		},
 	}
 	bindKeyFileFlag(cmd.Flags(), cfg)
-	tlsutil.BindFlags(cmd.Flags(), cfg.config, "")
+	pcert.BindFlags(cmd.Flags(), cfg.config, "")
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 	return cmd
 }
@@ -182,22 +182,22 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			csr, err := tlsutil.CSRFromPEM(csrPEM)
+			csr, err := pcert.CSRFromPEM(csrPEM)
 			if err != nil {
 				return err
 			}
 
-			signCert, err := tlsutil.CertificateFromPEM(signCertPEM)
+			signCert, err := pcert.CertificateFromPEM(signCertPEM)
 			if err != nil {
 				return err
 			}
 
-			signKey, err := tlsutil.KeyFromPEM(signKeyPEM)
+			signKey, err := pcert.KeyFromPEM(signKeyPEM)
 			if err != nil {
 				return err
 			}
 
-			cert, err := tlsutil.Sign(csr, cfg.config, signCert, signKey)
+			cert, err := pcert.Sign(csr, cfg.config, signCert, signKey)
 			if err != nil {
 				return err
 			}
