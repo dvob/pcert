@@ -3,7 +3,6 @@ package pcert
 import (
 	"crypto"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
 	"fmt"
@@ -53,25 +52,20 @@ func Create(cert, signCert *x509.Certificate, keyConfig KeyConfig, signKey crypt
 }
 
 // create CSR
-func Request(cert *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+func Request(cert *x509.Certificate, keyConfig KeyConfig) (csrPEM []byte, keyPEM []byte, err error) {
+	priv, _, err := GenerateKey(keyConfig)
 	if err != nil {
 		return
 	}
 
-	keyDER, err := x509.MarshalPKCS8PrivateKey(key)
+	keyDER, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
 		return
 	}
 
 	keyPEM = KeyToPEM(keyDER)
 
-	err = Default(cert)
-	if err != nil {
-		return
-	}
-
-	der, err := x509.CreateCertificateRequest(rand.Reader, toCSR(cert), key)
+	der, err := x509.CreateCertificateRequest(rand.Reader, toCSR(cert), priv)
 	if err != nil {
 		return
 	}
