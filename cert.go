@@ -4,7 +4,9 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/x509"
+	"fmt"
 )
 
 // create self signed certificate (e.g. CA)
@@ -26,9 +28,16 @@ func Create(name string, template, signCert *x509.Certificate, keyConfig KeyConf
 		return
 	}
 
+	cert.SubjectKeyId, err = getSubjectKeyId(pub)
+	if err != nil {
+		err = fmt.Errorf("failed to calculate subject key id: %w", err)
+		return
+	}
+
 	var der []byte
 	// If either signCert or signKey is missing we self sign the certificate
 	if signCert == nil || signKey == nil {
+		cert.AuthorityKeyId = cert.SubjectKeyId
 		der, err = x509.CreateCertificate(rand.Reader, cert, cert, pub, priv)
 	} else {
 		der, err = x509.CreateCertificate(rand.Reader, cert, signCert, pub, signKey)
@@ -82,6 +91,12 @@ func Sign(csr *x509.CertificateRequest, template *x509.Certificate, signCert *x5
 
 	applyCSR(csr, cert)
 
+	cert.SubjectKeyId, err = getSubjectKeyId(cert.PublicKey)
+	if err != nil {
+		err = fmt.Errorf("failed to calculate subject key id: %w", err)
+		return
+	}
+
 	der, err := x509.CreateCertificate(rand.Reader, cert, signCert, cert.PublicKey, signKey)
 	if err != nil {
 		return nil, err
@@ -114,4 +129,14 @@ func toCSR(cert *x509.Certificate) *x509.CertificateRequest {
 		URIs:               cert.URIs,
 		ExtraExtensions:    cert.ExtraExtensions,
 	}
+}
+
+func getSubjectKeyId(pub crypto.PublicKey) ([]byte, error) {
+	encodedPub, err := x509.MarshalPKIXPublicKey(pub)
+	if err != nil {
+		return nil, err
+	}
+
+	pubHash := sha1.Sum(encodedPub)
+	return pubHash[:], nil
 }
