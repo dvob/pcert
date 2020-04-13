@@ -20,7 +20,7 @@ func (eku *extKeyUsageValue) Type() string {
 }
 
 func (eku *extKeyUsageValue) String() string {
-	return fmt.Sprintf("%s", *eku.value)
+	return fmt.Sprintf("%d", *eku.value)
 }
 
 func (eku *extKeyUsageValue) Set(usage string) error {
