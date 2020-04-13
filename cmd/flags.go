@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dsbrng25b/pcert"
 	"github.com/spf13/pflag"
 )
 
@@ -33,7 +34,7 @@ func BindFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix string) {
 	fs.Var(newExtKeyUsageValue(&cert.ExtKeyUsage), prefix+"ext-key-usage", "Set the extended key usage")
 }
 
-func BindKeyFlags(fs *pflag.FlagSet, keyConfig *KeyConfig, prefix string) {
+func BindKeyFlags(fs *pflag.FlagSet, keyConfig *pcert.KeyConfig, prefix string) {
 	fs.StringVar(&keyConfig.Algorithm, prefix+"key-alg", keyConfig.Algorithm, "Key Algorithm")
 	fs.IntVar(&keyConfig.Size, prefix+"key-size", keyConfig.Size, "Key Size")
 }

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/dsbrng25b/pcert"
+	cmdutil "github.com/dsbrng25b/pcert/cmd"
+	"github.com/dsbrng25b/pcert/pem"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -53,11 +55,11 @@ func (a *app) setupSignSettings() (err error) {
 		return nil
 	}
 
-	a.signCert, err = pcert.FromFile(a.signCertFile)
+	a.signCert, err = pem.Read(a.signCertFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing certificate: %w", err)
 	}
-	a.signKey, err = pcert.KeyFromFile(a.signKeyFile)
+	a.signKey, err = pem.ReadKey(a.signKeyFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing key: %w", err)
 	}
@@ -207,19 +209,19 @@ are specified the certificate is signed by these. Otherwise it will be self-sign
 	bindProfileFlags(cmd.Flags(), cfg)
 	bindExpiryFlag(cmd.Flags(), cfg)
 
-	pcert.BindFlags(cmd.Flags(), cfg.cert, "")
-	pcert.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
+	cmdutil.BindFlags(cmd.Flags(), cfg.cert, "")
+	cmdutil.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
 
 	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		out := []string{}
-		for u, _ := range pcert.KeyUsage {
+		for u, _ := range cmdutil.KeyUsage {
 			out = append(out, u)
 		}
 		return out, cobra.ShellCompDirectiveNoFileComp
 	})
 	cmd.RegisterFlagCompletionFunc("ext-key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		out := []string{}
-		for u, _ := range pcert.ExtKeyUsage {
+		for u, _ := range cmdutil.ExtKeyUsage {
 			out = append(out, u)
 		}
 		return out, cobra.ShellCompDirectiveNoFileComp
@@ -257,7 +259,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		},
 	}
 	bindKeyFileFlag(cmd.Flags(), cfg)
-	pcert.BindFlags(cmd.Flags(), cfg.cert, "")
+	cmdutil.BindFlags(cmd.Flags(), cfg.cert, "")
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 	return cmd
 }
@@ -283,7 +285,7 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			csr, err := pcert.CSRFromFile(csrFile)
+			csr, err := pem.ReadCSR(csrFile)
 			if err != nil {
 				return err
 			}
@@ -310,15 +312,15 @@ func newListCmd() *cobra.Command {
 			t := args[0]
 			switch t {
 			case "key-usage":
-				for u, _ := range pcert.KeyUsage {
+				for u, _ := range cmdutil.KeyUsage {
 					fmt.Println(u)
 				}
 			case "ext-key-usage":
-				for u, _ := range pcert.ExtKeyUsage {
+				for u, _ := range cmdutil.ExtKeyUsage {
 					fmt.Println(u)
 				}
 			case "sign-alg":
-				for _, a := range pcert.GetSignatureAlgorithms() {
+				for _, a := range cmdutil.GetSignatureAlgorithms() {
 					fmt.Println(a)
 				}
 			case "key-alg":

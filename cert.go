@@ -7,6 +7,8 @@ import (
 	"crypto/x509"
 	"math/big"
 	"time"
+
+	"github.com/dsbrng25b/pcert/pem"
 )
 
 const (
@@ -28,12 +30,10 @@ func CreateWithKeyConfig(cert *x509.Certificate, keyConfig KeyConfig, signCert *
 		return
 	}
 
-	keyDER, err := x509.MarshalPKCS8PrivateKey(priv)
+	keyPEM, err = pem.EncodeKey(priv)
 	if err != nil {
 		return
 	}
-
-	keyPEM = keyToPEM(keyDER)
 
 	// If either signCert or signKey is missing we self sign the certificate
 	if signCert == nil || signKey == nil {
@@ -87,7 +87,7 @@ func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certific
 		return nil, err
 	}
 
-	return certificateToPEM(der), nil
+	return pem.Encode(der), nil
 }
 
 // Request creates a CSR based on cert and a key. The key is created with the
@@ -104,19 +104,17 @@ func RequestWithKeyOption(cert *x509.Certificate, keyConfig KeyConfig) (csrPEM [
 		return
 	}
 
-	keyDER, err := x509.MarshalPKCS8PrivateKey(priv)
+	keyPEM, err = pem.EncodeKey(priv)
 	if err != nil {
 		return
 	}
-
-	keyPEM = keyToPEM(keyDER)
 
 	der, err := x509.CreateCertificateRequest(rand.Reader, toCSR(cert), priv)
 	if err != nil {
 		return
 	}
 
-	csrPEM = csrToPEM(der)
+	csrPEM = pem.EncodeCSR(der)
 
 	return
 }
