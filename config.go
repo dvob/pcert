@@ -107,7 +107,7 @@ func (sa *signAlgValue) Set(signAlgName string) error {
 }
 
 func getSignatureAlgorithmByName(name string) x509.SignatureAlgorithm {
-	for i, alg := range getSignatureAlgorithms() {
+	for i, alg := range GetSignatureAlgorithms() {
 		if alg == name {
 			return x509.SignatureAlgorithm(i)
 		}
@@ -115,7 +115,7 @@ func getSignatureAlgorithmByName(name string) x509.SignatureAlgorithm {
 	return x509.UnknownSignatureAlgorithm
 }
 
-func getSignatureAlgorithms() []string {
+func GetSignatureAlgorithms() []string {
 	maxAlgs := 100
 	algs := []string{}
 	for i := 0; i < maxAlgs; i++ {

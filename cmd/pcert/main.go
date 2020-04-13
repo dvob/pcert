@@ -94,6 +94,7 @@ prefix (e.g TLSUTIL_CERT instad of --cert).`,
 		newCreateCmd(cfg),
 		newRequestCmd(cfg),
 		newSignCmd(cfg),
+		newListCmd(),
 		newCompletionCmd(),
 	)
 	return cmd
@@ -231,6 +232,39 @@ func newSignCmd(cfg *app) *cobra.Command {
 	}
 	bindCertFileFlag(cmd.Flags(), cfg)
 	bindSignFileFlags(cmd.Flags(), cfg)
+	return cmd
+}
+
+func newListCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:       "list <type>",
+		ValidArgs: []string{"key-usage", "ext-key-usage", "sign-alg", "key-alg"},
+		Args:      cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			t := args[0]
+			switch t {
+			case "key-usage":
+				for u, _ := range pcert.KeyUsage {
+					fmt.Println(u)
+				}
+			case "ext-key-usage":
+				for u, _ := range pcert.ExtKeyUsage {
+					fmt.Println(u)
+				}
+			case "sign-alg":
+				for _, a := range pcert.GetSignatureAlgorithms() {
+					fmt.Println(a)
+				}
+			case "key-alg":
+				fmt.Println("rsa")
+				fmt.Println("ecdsa")
+				fmt.Println("ed25519")
+			default:
+				return fmt.Errorf("unknown type: %s", t)
+			}
+			return nil
+		},
+	}
 	return cmd
 }
 
