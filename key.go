@@ -10,15 +10,18 @@ import (
 	"fmt"
 )
 
+// KeyConfig specifies a key algorithm and a size
 type KeyConfig struct {
 	Algorithm string
 	Size      int
 }
 
+// NewDefaultKeyConfig returns the default key config, which uses "ecdsa" with 256bit key size.
 func NewDefaultKeyConfig() KeyConfig {
 	return KeyConfig{"ecdsa", 256}
 }
 
+// GenerateKey returns a private and a public key based on the config.
 func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) {
 	switch config.Algorithm {
 	case "rsa":
