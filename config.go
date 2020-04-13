@@ -22,6 +22,10 @@ func BindFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix string) {
 	fs.Var(newTimeValue(&cert.NotBefore), prefix+"not-before", "Not valid before time in RFC3339 format")
 	fs.Var(newTimeValue(&cert.NotAfter), prefix+"not-after", "Not valid after time in RFC3339 format")
 	fs.Var(newSubjectValue(&cert.Subject), prefix+"subject", "Subject in the form '/C=CH/O=My Org/OU=My Team'")
+
+	fs.BoolVar(&cert.BasicConstraintsValid, prefix+"basic-constraints", cert.BasicConstraintsValid, "Add basic constraints extension")
+	fs.BoolVar(&cert.IsCA, prefix+"is-ca", cert.IsCA, "Mark certificate as CA in the basic constraints. Only takes effect if --basic-constraints is true")
+	fs.Var(newMaxPathLengthValue(cert), prefix+"max-path-length", "Sets the max path length in the basic constraints.")
 }
 
 func BindKeyFlags(fs *pflag.FlagSet, keyConfig *KeyConfig, prefix string) {
@@ -211,4 +215,39 @@ func parseSubjectInto(subject string, target *pkix.Name) error {
 		}
 	}
 	return nil
+}
+
+type maxPathLengthValue struct {
+	cert *x509.Certificate
+}
+
+func newMaxPathLengthValue(c *x509.Certificate) *maxPathLengthValue {
+	return &maxPathLengthValue{
+		cert: c,
+	}
+}
+
+func (m *maxPathLengthValue) Type() string {
+	return "int|none"
+}
+
+func (m *maxPathLengthValue) String() string {
+	if m.cert.MaxPathLen < 0 {
+		return "none"
+	}
+	if m.cert.MaxPathLen == 0 && !m.cert.MaxPathLenZero {
+		return "none"
+	}
+	return strconv.Itoa(m.cert.MaxPathLen)
+}
+
+func (m *maxPathLengthValue) Set(length string) error {
+	var err error
+	if length == "none" {
+		m.cert.MaxPathLen = -1
+		return nil
+	}
+
+	m.cert.MaxPathLen, err = strconv.Atoi(length)
+	return err
 }
