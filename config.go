@@ -1,5 +1,7 @@
 package pcert
 
+//go:generate go run gen_keyusage.go
+
 import (
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -26,6 +28,9 @@ func BindFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix string) {
 	fs.BoolVar(&cert.BasicConstraintsValid, prefix+"basic-constraints", cert.BasicConstraintsValid, "Add basic constraints extension")
 	fs.BoolVar(&cert.IsCA, prefix+"is-ca", cert.IsCA, "Mark certificate as CA in the basic constraints. Only takes effect if --basic-constraints is true")
 	fs.Var(newMaxPathLengthValue(cert), prefix+"max-path-length", "Sets the max path length in the basic constraints.")
+
+	fs.Var(newKeyUsageValue(&cert.KeyUsage), prefix+"key-usage", "Set the key usage")
+	fs.Var(newExtKeyUsageValue(&cert.ExtKeyUsage), prefix+"ext-key-usage", "Set the extended key usage")
 }
 
 func BindKeyFlags(fs *pflag.FlagSet, keyConfig *KeyConfig, prefix string) {
@@ -250,4 +255,58 @@ func (m *maxPathLengthValue) Set(length string) error {
 
 	m.cert.MaxPathLen, err = strconv.Atoi(length)
 	return err
+}
+
+type keyUsageValue struct {
+	value *x509.KeyUsage
+}
+
+func newKeyUsageValue(ku *x509.KeyUsage) *keyUsageValue {
+	return &keyUsageValue{
+		value: ku,
+	}
+}
+
+func (ku *keyUsageValue) Type() string {
+	return "usage"
+}
+
+func (ku *keyUsageValue) String() string {
+	return strconv.Itoa(int(*ku.value))
+}
+
+func (ku *keyUsageValue) Set(usage string) error {
+	x509Usage, ok := KeyUsage[usage]
+	if !ok {
+		return fmt.Errorf("unknown usage: %s", usage)
+	}
+	*ku.value |= x509Usage
+	return nil
+}
+
+type extKeyUsageValue struct {
+	value *[]x509.ExtKeyUsage
+}
+
+func newExtKeyUsageValue(eku *[]x509.ExtKeyUsage) *extKeyUsageValue {
+	return &extKeyUsageValue{
+		value: eku,
+	}
+}
+
+func (eku *extKeyUsageValue) Type() string {
+	return "usage"
+}
+
+func (eku *extKeyUsageValue) String() string {
+	return fmt.Sprintf("%s", *eku.value)
+}
+
+func (eku *extKeyUsageValue) Set(usage string) error {
+	x509ExtUsage, ok := ExtKeyUsage[usage]
+	if !ok {
+		return fmt.Errorf("unknown usage: %s", usage)
+	}
+	*eku.value = append(*eku.value, x509ExtUsage)
+	return nil
 }
