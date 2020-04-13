@@ -209,7 +209,7 @@ are specified the certificate is signed by these. Otherwise it will be self-sign
 	bindProfileFlags(cmd.Flags(), cfg)
 	bindExpiryFlag(cmd.Flags(), cfg)
 
-	cmdutil.BindFlags(cmd.Flags(), cfg.cert, "")
+	cmdutil.BindCertificateFlags(cmd.Flags(), cfg.cert, "")
 	cmdutil.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
 
 	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -259,7 +259,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		},
 	}
 	bindKeyFileFlag(cmd.Flags(), cfg)
-	cmdutil.BindFlags(cmd.Flags(), cfg.cert, "")
+	cmdutil.BindCertificateFlags(cmd.Flags(), cfg.cert, "")
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 	return cmd
 }
