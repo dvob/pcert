@@ -149,8 +149,8 @@ func newRootCmd() *cobra.Command {
 		Use:   "pcert",
 		Short: "pcert helps you to quickly create and sign certificates",
 		Long: `The pcert command helps you to create and sign certificates and CSRs.
-All options can also be set as environment variable with the TLSUTIL_
-prefix (e.g TLSUTIL_CERT instad of --cert).`,
+All options can also be set as environment variable with the PCERT_
+prefix (e.g PCERT_CERT instad of --cert).`,
 		TraverseChildren: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
