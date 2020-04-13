@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 )
 
 const (
@@ -22,15 +23,15 @@ func toPEM(blockType string, bytes []byte) []byte {
 	return pem.EncodeToMemory(block)
 }
 
-func CertificateToPEM(derBytes []byte) []byte {
+func certificateToPEM(derBytes []byte) []byte {
 	return toPEM(certificateBlockType, derBytes)
 }
 
-func CSRToPEM(derBytes []byte) []byte {
+func csrToPEM(derBytes []byte) []byte {
 	return toPEM(certificateRequestBlockType, derBytes)
 }
 
-func KeyToPEM(derBytes []byte) []byte {
+func keyToPEM(derBytes []byte) []byte {
 	return toPEM(privateKeyBlockType, derBytes)
 }
 
@@ -69,4 +70,28 @@ func CertificateFromPEM(pem []byte) (*x509.Certificate, error) {
 		return nil, err
 	}
 	return x509.ParseCertificate(der)
+}
+
+func FromFile(f string) (*x509.Certificate, error) {
+	pem, err := ioutil.ReadFile(f)
+	if err != nil {
+		return nil, err
+	}
+	return CertificateFromPEM(pem)
+}
+
+func KeyFromFile(f string) (interface{}, error) {
+	pem, err := ioutil.ReadFile(f)
+	if err != nil {
+		return nil, err
+	}
+	return KeyFromPEM(pem)
+}
+
+func CSRFromFile(f string) (*x509.CertificateRequest, error) {
+	pem, err := ioutil.ReadFile(f)
+	if err != nil {
+		return nil, err
+	}
+	return CSRFromPEM(pem)
 }
