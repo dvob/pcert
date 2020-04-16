@@ -55,11 +55,11 @@ func (a *app) setupSignSettings() (err error) {
 		return nil
 	}
 
-	a.signCert, err = pem.Read(a.signCertFile)
+	a.signCert, err = pem.Load(a.signCertFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing certificate: %w", err)
 	}
-	a.signKey, err = pem.ReadKey(a.signKeyFile)
+	a.signKey, err = pem.LoadKey(a.signKeyFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing key: %w", err)
 	}
@@ -285,7 +285,7 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			csr, err := pem.ReadCSR(csrFile)
+			csr, err := pem.LoadCSR(csrFile)
 			if err != nil {
 				return err
 			}

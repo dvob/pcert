@@ -14,7 +14,7 @@ const (
 )
 
 // Read reads a *x509.Certificate from a PEM encoded file.
-func Read(f string) (*x509.Certificate, error) {
+func Load(f string) (*x509.Certificate, error) {
 	pem, err := ioutil.ReadFile(f)
 
 	if err != nil {
@@ -25,7 +25,7 @@ func Read(f string) (*x509.Certificate, error) {
 }
 
 // ReadKey reads a *crypto.PrivateKey from a PEM encoded file.
-func ReadKey(f string) (interface{}, error) {
+func LoadKey(f string) (interface{}, error) {
 	pem, err := ioutil.ReadFile(f)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func ReadKey(f string) (interface{}, error) {
 }
 
 // ReadCSR reads a *x509.CertificateRequest from a PEM encoded file.
-func ReadCSR(f string) (*x509.CertificateRequest, error) {
+func LoadCSR(f string) (*x509.CertificateRequest, error) {
 	pem, err := ioutil.ReadFile(f)
 
 	if err != nil {
