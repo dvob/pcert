@@ -214,14 +214,14 @@ are specified the certificate is signed by these. Otherwise it will be self-sign
 
 	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		out := []string{}
-		for u, _ := range cmdutil.KeyUsage {
+		for u, _ := range pcert.KeyUsage {
 			out = append(out, u)
 		}
 		return out, cobra.ShellCompDirectiveNoFileComp
 	})
 	cmd.RegisterFlagCompletionFunc("ext-key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		out := []string{}
-		for u, _ := range cmdutil.ExtKeyUsage {
+		for u, _ := range pcert.ExtKeyUsage {
 			out = append(out, u)
 		}
 		return out, cobra.ShellCompDirectiveNoFileComp
@@ -312,11 +312,11 @@ func newListCmd() *cobra.Command {
 			t := args[0]
 			switch t {
 			case "key-usage":
-				for u, _ := range cmdutil.KeyUsage {
+				for u, _ := range pcert.KeyUsage {
 					fmt.Println(u)
 				}
 			case "ext-key-usage":
-				for u, _ := range cmdutil.ExtKeyUsage {
+				for u, _ := range pcert.ExtKeyUsage {
 					fmt.Println(u)
 				}
 			case "sign-alg":

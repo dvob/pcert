@@ -1,7 +1,5 @@
 package cmd
 
-//go:generate go run gen_keyusage.go
-
 import (
 	"crypto/x509"
 	"net"

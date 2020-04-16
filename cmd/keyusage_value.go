@@ -4,6 +4,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"strconv"
+
+	"github.com/dsbrng25b/pcert"
 )
 
 type keyUsageValue struct {
@@ -25,7 +27,7 @@ func (ku *keyUsageValue) String() string {
 }
 
 func (ku *keyUsageValue) Set(usage string) error {
-	x509Usage, ok := KeyUsage[usage]
+	x509Usage, ok := pcert.KeyUsage[usage]
 	if !ok {
 		return fmt.Errorf("unknown usage: %s", usage)
 	}

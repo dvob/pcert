@@ -3,6 +3,8 @@ package cmd
 import (
 	"crypto/x509"
 	"fmt"
+
+	"github.com/dsbrng25b/pcert"
 )
 
 type extKeyUsageValue struct {
@@ -24,7 +26,7 @@ func (eku *extKeyUsageValue) String() string {
 }
 
 func (eku *extKeyUsageValue) Set(usage string) error {
-	x509ExtUsage, ok := ExtKeyUsage[usage]
+	x509ExtUsage, ok := pcert.ExtKeyUsage[usage]
 	if !ok {
 		return fmt.Errorf("unknown usage: %s", usage)
 	}
