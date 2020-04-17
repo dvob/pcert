@@ -1,0 +1,25 @@
+project_name: pcert
+builds:
+- main: ./cmd/pcert/
+  goos:
+  - linux
+  - darwin
+  - openbsd
+  - freebsd
+  - windows
+archives:
+- name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+  format: binary
+checksum:
+  name_template: 'checksums.txt'
+builds:
+- goos:
+  - linux
+  - darwin
+  - openbsd
+  - freebsd
+  - windows
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  sort: asc
