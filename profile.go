@@ -44,8 +44,22 @@ func NewCACertificate(name string) *x509.Certificate {
 
 // SetServerProfile sets typical characteristics of a server certificate.
 func SetServerProfile(cert *x509.Certificate) {
+	present := false
+	for _, dns := range cert.DNSNames {
+		if dns == cert.Subject.CommonName {
+			present = true
+			break
+		}
+	}
+
+	if !present {
+		cert.DNSNames = append(cert.DNSNames, cert.Subject.CommonName)
+	}
+
 	addExtKeyUsage(cert, x509.ExtKeyUsageServerAuth)
 	addExtKeyUsage(cert, x509.ExtKeyUsageClientAuth)
+	cert.BasicConstraintsValid = true
+	cert.IsCA = false
 	cert.KeyUsage |= DefaultKeyUsage
 }
 
@@ -60,6 +74,8 @@ func SetCAProfile(cert *x509.Certificate) {
 // SetClientProfile sets typical characteristics of a client certificate.
 func SetClientProfile(cert *x509.Certificate) {
 	addExtKeyUsage(cert, x509.ExtKeyUsageClientAuth)
+	cert.BasicConstraintsValid = true
+	cert.IsCA = false
 	cert.KeyUsage |= DefaultKeyUsage
 }
 
