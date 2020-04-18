@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -66,30 +65,26 @@ func (a *app) setupSignSettings() (err error) {
 	return nil
 }
 
+func (a *app) applyCertOptions() {
+	a.applyExpiry()
+	a.applyProfile()
+}
+
 func (a *app) applyProfile() {
 	if a.ca {
 		pcert.SetCAProfile(a.cert)
 	}
 
-	if a.client {
-		pcert.SetClientProfile(a.cert)
-	}
-
 	if a.server {
 		pcert.SetServerProfile(a.cert)
 	}
-}
 
-func (a *app) setupOutputSettings(name string) {
-	if a.certFile == "" {
-		a.certFile = name + CERT_FILE_SUFFIX
-	}
-	if a.keyFile == "" {
-		a.keyFile = name + KEY_FILE_SUFFIX
+	if a.client {
+		pcert.SetClientProfile(a.cert)
 	}
 }
 
-func (a *app) setExpiry() {
+func (a *app) applyExpiry() {
 	// expiry no set
 	if a.expiry == time.Duration(0) {
 		return
@@ -105,28 +100,52 @@ func (a *app) setExpiry() {
 	}
 }
 
-func bindCertFileFlag(fs *pflag.FlagSet, cfg *app) {
-	fs.StringVar(&cfg.certFile, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
+func (a *app) defaultOutputSettings(name string) {
+	if a.certFile == "" {
+		a.certFile = name + CERT_FILE_SUFFIX
+	}
+	if a.keyFile == "" {
+		a.keyFile = name + KEY_FILE_SUFFIX
+	}
 }
 
-func bindKeyFileFlag(fs *pflag.FlagSet, cfg *app) {
-	fs.StringVar(&cfg.keyFile, "key", "", "Output file for the key. Defaults to <name>.key")
+func (a *app) bindCertFlags(cmd *cobra.Command) {
+	// cert
+	cmd.Flags().BoolVar(&a.ca, "ca", false, "Create a CA certificate")
+	cmd.Flags().BoolVar(&a.server, "server", false, "Create a server certificate")
+	cmd.Flags().BoolVar(&a.client, "client", false, "Create a client certificate")
+	cmd.Flags().Var(newDurationValue(&a.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
+	cmdutil.BindCertificateFlags(cmd.Flags(), a.cert, "")
+
+	// output
+	cmd.Flags().StringVar(&a.certFile, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
+
+	// TODO: move these
+	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		out := []string{}
+		for u, _ := range pcert.KeyUsages {
+			out = append(out, u)
+		}
+		return out, cobra.ShellCompDirectiveNoFileComp
+	})
+	cmd.RegisterFlagCompletionFunc("ext-key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		out := []string{}
+		for u, _ := range pcert.ExtKeyUsages {
+			out = append(out, u)
+		}
+		return out, cobra.ShellCompDirectiveNoFileComp
+	})
 }
 
-func bindSignFileFlags(fs *pflag.FlagSet, cfg *app) {
-	fs.StringVar(&cfg.signCertFile, "sign-cert", "", "Certificate used to sign the certificate")
-	fs.StringVar(&cfg.signKeyFile, "sign-key", "", "Key used to sign the certificates")
-	fs.StringVar(&cfg.signFrom, "from", "", "Specifiy a name of a key pair (<name>.crt, <name>.key) from which you want to sign your certificate. This can be used insted of --sign-cert and --sign-key")
+func (a *app) bindKeyFlags(cmd *cobra.Command) {
+	cmdutil.BindKeyFlags(cmd.Flags(), &a.keyConfig, "")
+	cmd.Flags().StringVar(&a.keyFile, "key", "", "Output file for the key. Defaults to <name>.key")
 }
 
-func bindProfileFlags(fs *pflag.FlagSet, cfg *app) {
-	fs.BoolVar(&cfg.ca, "ca", false, "Create a CA certificate")
-	fs.BoolVar(&cfg.server, "server", false, "Create a server certificate")
-	fs.BoolVar(&cfg.client, "client", false, "Create a client certificate")
-}
-
-func bindExpiryFlag(fs *pflag.FlagSet, cfg *app) {
-	fs.Var(newDurationValue(&cfg.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
+func (a *app) bindSignFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&a.signCertFile, "sign-cert", "", "Certificate used to sign the certificate")
+	cmd.Flags().StringVar(&a.signKeyFile, "sign-key", "", "Key used to sign the certificates")
+	cmd.Flags().StringVar(&a.signFrom, "from", "", "Specifiy a name of a key pair (<name>.crt, <name>.key) from which you want to sign your certificate. This can be used insted of --sign-cert and --sign-key")
 }
 
 func defaultSetting(setting *string, value string) {
@@ -152,13 +171,20 @@ func newRootCmd() *cobra.Command {
 All options can also be set as environment variable with the PCERT_
 prefix (e.g PCERT_CERT instad of --cert).`,
 		TraverseChildren: true,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
-				varName := ENV_PREFIX + strings.ToUpper(f.Name)
+				optName := strings.ToUpper(f.Name)
+				optName = strings.ReplaceAll(optName, "-", "_")
+				varName := ENV_PREFIX + optName
 				if val, ok := os.LookupEnv(varName); !f.Changed && ok {
-					f.Value.Set(val)
+					err2 := f.Value.Set(val)
+					if err2 != nil {
+						err = fmt.Errorf("invalid environment variable %s: %w", varName, err2)
+					}
 				}
 			})
+			return err
 		},
 	}
 	cmd.AddCommand(
@@ -168,171 +194,6 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 		newListCmd(),
 		newCompletionCmd(),
 	)
-	return cmd
-}
-
-func newCreateCmd(cfg *app) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "create <name>",
-		Short: "create a signed certificate",
-		Long: `Creates a key and certificate. If --from or --sign-cert and --sign-key
-are specified the certificate is signed by these. Otherwise it will be self-signed.`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			defaultSetting(&cfg.cert.Subject.CommonName, name)
-			cfg.setupOutputSettings(name)
-			cfg.setExpiry()
-			cfg.applyProfile()
-
-			err := cfg.setupSignSettings()
-			if err != nil {
-				return err
-			}
-
-			cert, key, err := pcert.CreateWithKeyConfig(cfg.cert, cfg.keyConfig, cfg.signCert, cfg.signKey)
-			if err != nil {
-				return err
-			}
-
-			err = ioutil.WriteFile(cfg.keyFile, key, 0600)
-			if err != nil {
-				return err
-			}
-			err = ioutil.WriteFile(cfg.certFile, cert, 0640)
-			return err
-		},
-	}
-	bindSignFileFlags(cmd.Flags(), cfg)
-	bindKeyFileFlag(cmd.Flags(), cfg)
-	bindCertFileFlag(cmd.Flags(), cfg)
-	bindProfileFlags(cmd.Flags(), cfg)
-	bindExpiryFlag(cmd.Flags(), cfg)
-
-	cmdutil.BindCertificateFlags(cmd.Flags(), cfg.cert, "")
-	cmdutil.BindKeyFlags(cmd.Flags(), &cfg.keyConfig, "")
-
-	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		out := []string{}
-		for u, _ := range pcert.KeyUsages {
-			out = append(out, u)
-		}
-		return out, cobra.ShellCompDirectiveNoFileComp
-	})
-	cmd.RegisterFlagCompletionFunc("ext-key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		out := []string{}
-		for u, _ := range pcert.ExtKeyUsages {
-			out = append(out, u)
-		}
-		return out, cobra.ShellCompDirectiveNoFileComp
-	})
-	return cmd
-}
-
-func newRequestCmd(cfg *app) *cobra.Command {
-	var (
-		csrFile string
-	)
-	cmd := &cobra.Command{
-		Use:   "request <name>",
-		Short: "create a certificate signing request (CSR)",
-		Long:  "creates a CSR and a coresponding key.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			defaultSetting(&cfg.cert.Subject.CommonName, name)
-			defaultSetting(&csrFile, name+CSR_FILE_SUFFIX)
-			cfg.setupOutputSettings(name)
-			cfg.applyProfile()
-
-			csr, key, err := pcert.RequestWithKeyOption(cfg.cert, cfg.keyConfig)
-			if err != nil {
-				return err
-			}
-
-			err = ioutil.WriteFile(cfg.keyFile, key, 0600)
-			if err != nil {
-				return err
-			}
-			err = ioutil.WriteFile(csrFile, csr, 0640)
-			return err
-		},
-	}
-	bindKeyFileFlag(cmd.Flags(), cfg)
-	cmdutil.BindCertificateFlags(cmd.Flags(), cfg.cert, "")
-	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
-	return cmd
-}
-
-func newSignCmd(cfg *app) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "sign <csr-file>",
-		Short: "Sign a CSR.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			csrFile := args[0]
-			if strings.HasSuffix(csrFile, ".csr") {
-				defaultSetting(&cfg.certFile, csrFile[:len(csrFile)-len(".csr")]+".crt")
-			} else {
-				defaultSetting(&cfg.certFile, csrFile+".crt")
-			}
-
-			cfg.applyProfile()
-			cfg.setExpiry()
-
-			err := cfg.setupSignSettings()
-			if err != nil {
-				return err
-			}
-
-			csr, err := pem.LoadCSR(csrFile)
-			if err != nil {
-				return err
-			}
-
-			cert, err := pcert.SignCSR(csr, cfg.cert, cfg.signCert, cfg.signKey)
-			if err != nil {
-				return err
-			}
-			err = ioutil.WriteFile(cfg.certFile, cert, 0640)
-			return err
-		},
-	}
-	bindCertFileFlag(cmd.Flags(), cfg)
-	bindSignFileFlags(cmd.Flags(), cfg)
-	return cmd
-}
-
-func newListCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:       "list <type>",
-		ValidArgs: []string{"key-usage", "ext-key-usage", "sign-alg", "key-alg"},
-		Args:      cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			t := args[0]
-			switch t {
-			case "key-usage":
-				for u, _ := range pcert.KeyUsages {
-					fmt.Println(u)
-				}
-			case "ext-key-usage":
-				for u, _ := range pcert.ExtKeyUsages {
-					fmt.Println(u)
-				}
-			case "sign-alg":
-				for _, a := range cmdutil.GetSignatureAlgorithms() {
-					fmt.Println(a)
-				}
-			case "key-alg":
-				fmt.Println("rsa")
-				fmt.Println("ecdsa")
-				fmt.Println("ed25519")
-			default:
-				return fmt.Errorf("unknown type: %s", t)
-			}
-			return nil
-		},
-	}
 	return cmd
 }
 
