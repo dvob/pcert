@@ -27,7 +27,7 @@ func (ku *keyUsageValue) String() string {
 }
 
 func (ku *keyUsageValue) Set(usage string) error {
-	x509Usage, ok := pcert.KeyUsage[usage]
+	x509Usage, ok := pcert.KeyUsages[usage]
 	if !ok {
 		return fmt.Errorf("unknown usage: %s", usage)
 	}

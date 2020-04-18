@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-//go:generate go run gen_keyusage.go
+//go:generate go run keyusage_gen.go
 
 func KeyUsageToString(bitmask x509.KeyUsage) string {
 	usages := []string{}
-	for str, usage := range KeyUsage {
+	for str, usage := range KeyUsages {
 		if usage&bitmask == usage {
 			usages = append(usages, str)
 		}
@@ -21,7 +21,7 @@ func KeyUsageToString(bitmask x509.KeyUsage) string {
 
 func ExtKeyUsageToString(ku []x509.ExtKeyUsage) string {
 	usages := []string{}
-	for str, usage := range ExtKeyUsage {
+	for str, usage := range ExtKeyUsages {
 		for _, existingUsage := range ku {
 			if usage == existingUsage {
 				usages = append(usages, str)

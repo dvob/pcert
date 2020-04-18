@@ -26,7 +26,7 @@ func (eku *extKeyUsageValue) String() string {
 }
 
 func (eku *extKeyUsageValue) Set(usage string) error {
-	x509ExtUsage, ok := pcert.ExtKeyUsage[usage]
+	x509ExtUsage, ok := pcert.ExtKeyUsages[usage]
 	if !ok {
 		return fmt.Errorf("unknown usage: %s", usage)
 	}
