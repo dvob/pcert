@@ -1,9 +1,9 @@
-# p(lain)cert
+# plaincert
 [![GoDoc](https://godoc.org/github.com/dsbrng25b/pcert?status.svg)](https://godoc.org/github.com/dsbrng25b/pcert)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dsbrng25b/pcert)](https://goreportcard.com/report/github.com/dsbrng25b/pcert)
+[![Build](https://github.com/dsbrng25b/pcert/workflows/main/badge.svg?branch=master)](https://github.com/dsbrng25b/pcert/actions)
 
-pcert aims to ease the creation of x509 certificates and keys.
-
-This README describes the usage of the CLI tool `pcert`. For information on how to use pcert as a library take a look at [godoc](https://godoc.org/github.com/dsbrng25b/pcert).
+**p**lain**cert** aims to ease the creation of x509 certificates and keys. It can be used as CLI tool or as Go library ([godoc](https://godoc.org/github.com/dsbrng25b/pcert)).  
 
 ## Quick Start
 ```shell
@@ -18,14 +18,10 @@ pcert create myuser --client --from myca
 ```
 
 ## General
-With `pcert create <name>` you can create a new certificate and key. The output file names are constructed using the name (`<name>.crt` and `<name>.key`). This can be changed by using the options `--cert <file>` and `--key <file>`. 
-
-The name is also set as the common name in the subject of the certificate. This can be changed with the `--subject` option (e.g `--subject "CN=My fancy name"`).
-
-All created certificates, keys and CSRs are saved PEM encoded and all files which are read are expected to be PEM encoded as well.
-
-All options can also be specified using environment variables in the form `PCERT_<OPTION>` (e.g. `--sign-cert` is `PCERT_SIGN_CERT`).
-
+With `pcert create <name>` you can create a new certificate and key. The output file names are constructed using the name (`<name>.crt` and `<name>.key`). This can be changed by using the options `--cert <file>` and `--key <file>`.   
+The name is also set as the common name in the subject of the certificate. This can be changed with the `--subject` option (e.g `--subject "CN=My fancy name"`).  
+All created certificates, keys and CSRs are saved PEM encoded and all files which are read are expected to be PEM encoded as well.  
+All options can also be specified using environment variables in the form `PCERT_<OPTION>` (e.g. `--sign-cert` is `PCERT_SIGN_CERT`).  
 Shell completion can be enabled for `bash` and `zsh`. It supports not only completion for the commands, but also for certain flags (e.g. `--key-usage`, `--ext-key-usage`, `--sign-alg`) where the valid options are hard to remember.
 ```shell
 source <( pcert completion bash )
