@@ -12,14 +12,5 @@ archives:
   format: binary
 checksum:
   name_template: 'checksums.txt'
-builds:
-- goos:
-  - linux
-  - darwin
-  - openbsd
-  - freebsd
-  - windows
-checksum:
-  name_template: 'checksums.txt'
 changelog:
   sort: asc
