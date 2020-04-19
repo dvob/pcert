@@ -19,7 +19,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 			defaultSetting(&cfg.cert.Subject.CommonName, name)
-			defaultSetting(&csrFile, name+CSR_FILE_SUFFIX)
+			defaultSetting(&csrFile, name+CSRFileSuffix)
 			cfg.defaultOutputSettings(name)
 			cfg.applyProfile()
 

@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	ENV_PREFIX       = "PCERT_"
-	CERT_FILE_SUFFIX = ".crt"
-	KEY_FILE_SUFFIX  = ".key"
-	CSR_FILE_SUFFIX  = ".csr"
+	EnvVarPrefix   = "PCERT_"
+	CertFileSuffix = ".crt"
+	KeyFileSuffix  = ".key"
+	CSRFileSuffix  = ".csr"
 )
 
 type app struct {
@@ -45,8 +45,8 @@ type app struct {
 
 func (a *app) setupSignSettings() (err error) {
 	if a.signFrom != "" {
-		a.signCertFile = a.signFrom + CERT_FILE_SUFFIX
-		a.signKeyFile = a.signFrom + KEY_FILE_SUFFIX
+		a.signCertFile = a.signFrom + CertFileSuffix
+		a.signKeyFile = a.signFrom + KeyFileSuffix
 	}
 
 	if a.signCertFile == "" && a.signKeyFile == "" {
@@ -101,10 +101,10 @@ func (a *app) applyExpiry() {
 
 func (a *app) defaultOutputSettings(name string) {
 	if a.certFile == "" {
-		a.certFile = name + CERT_FILE_SUFFIX
+		a.certFile = name + CertFileSuffix
 	}
 	if a.keyFile == "" {
-		a.keyFile = name + KEY_FILE_SUFFIX
+		a.keyFile = name + KeyFileSuffix
 	}
 }
 
@@ -130,7 +130,7 @@ func (a *app) bindKeyFlags(cmd *cobra.Command) {
 func (a *app) bindSignFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&a.signCertFile, "sign-cert", "", "Certificate used to sign the certificate")
 	cmd.Flags().StringVar(&a.signKeyFile, "sign-key", "", "Key used to sign the certificates")
-	cmd.Flags().StringVar(&a.signFrom, "from", "", "Specifiy a name of a key pair (<name>.crt, <name>.key) from which you want to sign your certificate. This can be used insted of --sign-cert and --sign-key")
+	cmd.Flags().StringVar(&a.signFrom, "from", "", "Specify a name of a key pair (<name>.crt, <name>.key) from which you want to sign your certificate. This can be used insted of --sign-cert and --sign-key")
 }
 
 func defaultSetting(setting *string, value string) {
@@ -167,7 +167,7 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
 				optName := strings.ToUpper(f.Name)
 				optName = strings.ReplaceAll(optName, "-", "_")
-				varName := ENV_PREFIX + optName
+				varName := EnvVarPrefix + optName
 				if val, ok := os.LookupEnv(varName); !f.Changed && ok {
 					err2 := f.Value.Set(val)
 					if err2 != nil {

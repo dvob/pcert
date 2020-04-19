@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	CERTIFICATE_TYPE         = "CERTIFICATE"
-	CERTIFICATE_REQUEST_TYPE = "CERTIFICATE REQUEST"
-	PRIVATE_KEY_TYPE         = "PRIVATE KEY"
+	CertificateBlock        = "CERTIFICATE"
+	CertificateRequestBlock = "CERTIFICATE REQUEST"
+	PrivateKeyBlock         = "PRIVATE KEY"
 )
 
 // Read reads a *x509.Certificate from a PEM encoded file.
@@ -48,7 +48,7 @@ func LoadCSR(f string) (*x509.CertificateRequest, error) {
 
 // Parse returns a *x509.Certificate from PEM encoded data.
 func Parse(pem []byte) (*x509.Certificate, error) {
-	der, err := parseType(CERTIFICATE_TYPE, pem)
+	der, err := parseType(CertificateBlock, pem)
 
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func Parse(pem []byte) (*x509.Certificate, error) {
 
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
 func ParseKey(pem []byte) (key interface{}, err error) {
-	der, err := parseType(PRIVATE_KEY_TYPE, pem)
+	der, err := parseType(PrivateKeyBlock, pem)
 
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func ParseKey(pem []byte) (key interface{}, err error) {
 
 // ParseCSR returns a *x509.CertificateRequest from PEM encoded data.
 func ParseCSR(pem []byte) (*x509.CertificateRequest, error) {
-	der, err := parseType(CERTIFICATE_REQUEST_TYPE, pem)
+	der, err := parseType(CertificateRequestBlock, pem)
 
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func parseType(blockType string, bytes []byte) ([]byte, error) {
 
 // Encode encodes DER encoded certificate into PEM encoding
 func Encode(derBytes []byte) []byte {
-	return encode(CERTIFICATE_TYPE, derBytes)
+	return encode(CertificateBlock, derBytes)
 }
 
 // EncodeKey encodes a *crypto.PrivateKey into PEM encoding by using x509.MarshalPKCS8PrivateKey
@@ -104,12 +104,12 @@ func EncodeKey(priv interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return encode(PRIVATE_KEY_TYPE, pkcs8der), nil
+	return encode(PrivateKeyBlock, pkcs8der), nil
 }
 
 // EncodeCSR encodes DER encoded CSR into PEM encoding
 func EncodeCSR(derBytes []byte) []byte {
-	return encode(CERTIFICATE_REQUEST_TYPE, derBytes)
+	return encode(CertificateRequestBlock, derBytes)
 }
 
 func encode(blockType string, bytes []byte) []byte {

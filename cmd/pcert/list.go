@@ -10,8 +10,8 @@ import (
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:       "list <option>",
-		Short:     "List avialable settings for options.",
-		Long:      "List avialable settings for the following options: key-usage, ext-key-usage, sign-alg, key-alg",
+		Short:     "List available settings for options.",
+		Long:      "List available settings for the following options: key-usage, ext-key-usage, sign-alg, key-alg",
 		ValidArgs: []string{"key-usage", "ext-key-usage", "sign-alg", "key-alg"},
 		Args:      cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -32,9 +32,8 @@ func formatDuration(d time.Duration) string {
 	days := int((d - rest).Hours()) / 24
 	if rest == time.Duration(0) {
 		return fmt.Sprintf("%dd", days)
-	} else {
-		return fmt.Sprintf("%dd%s", days, rest)
 	}
+	return fmt.Sprintf("%dd%s", days, rest)
 }
 
 type durationValue struct {
