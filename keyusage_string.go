@@ -8,6 +8,7 @@ import (
 
 //go:generate go run x509_lists_gen.go
 
+// KeyUsageToString returns a string representation of a x509.KeyUsage bitmask
 func KeyUsageToString(bitmask x509.KeyUsage) string {
 	usages := []string{}
 	for str, usage := range KeyUsages {
@@ -19,6 +20,7 @@ func KeyUsageToString(bitmask x509.KeyUsage) string {
 	return strings.Join(usages, ",")
 }
 
+// ExtKeyUsageToString returns a string representation of a []x509.ExtKeyUsage slice
 func ExtKeyUsageToString(ku []x509.ExtKeyUsage) string {
 	usages := []string{}
 	for str, usage := range ExtKeyUsages {

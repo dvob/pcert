@@ -58,7 +58,7 @@ func parseSubjectInto(subject string, target *pkix.Name) error {
 		case "POSTALCODE":
 			target.PostalCode = append(target.PostalCode, value)
 		case "SERIALNUMBER":
-			target.SerialNumber = target.SerialNumber
+			target.SerialNumber = value
 		case "CN":
 			target.CommonName = value
 		default:

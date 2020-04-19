@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dsbrng25b/pcert"
+	"github.com/spf13/cobra"
 )
 
 type keyAlgorithmValue struct {
@@ -17,15 +18,15 @@ func newKeyAlgorithmValue(keyAlgorithm *x509.PublicKeyAlgorithm) *keyAlgorithmVa
 	}
 }
 
-func (sa *keyAlgorithmValue) Type() string {
+func (ka *keyAlgorithmValue) Type() string {
 	return "PublicKeyAlgorithm"
 }
 
-func (sa *keyAlgorithmValue) String() string {
-	return fmt.Sprintf("%s", sa.value.String())
+func (ka *keyAlgorithmValue) String() string {
+	return ka.value.String()
 }
 
-func (sa *keyAlgorithmValue) Set(keyAlgName string) error {
+func (ka *keyAlgorithmValue) Set(keyAlgName string) error {
 	var alg x509.PublicKeyAlgorithm
 	for _, keyAlg := range pcert.PublicKeyAlgorithms {
 		if keyAlg.String() == keyAlgName {
@@ -36,6 +37,14 @@ func (sa *keyAlgorithmValue) Set(keyAlgName string) error {
 	if alg == x509.UnknownPublicKeyAlgorithm {
 		return fmt.Errorf("unknown public key algorithm: %s", keyAlgName)
 	}
-	*sa.value = alg
+	*ka.value = alg
 	return nil
+}
+
+func keyAlgorithmCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	out := []string{}
+	for _, s := range pcert.PublicKeyAlgorithms {
+		out = append(out, s.String())
+	}
+	return out, cobra.ShellCompDirectiveNoFileComp
 }

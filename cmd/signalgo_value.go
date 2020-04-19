@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dsbrng25b/pcert"
+	"github.com/spf13/cobra"
 )
 
 type signAlgValue struct {
@@ -22,7 +23,7 @@ func (sa *signAlgValue) Type() string {
 }
 
 func (sa *signAlgValue) String() string {
-	return fmt.Sprintf("%s", sa.value.String())
+	return sa.value.String()
 }
 
 func (sa *signAlgValue) Set(signAlgName string) error {
@@ -38,4 +39,12 @@ func (sa *signAlgValue) Set(signAlgName string) error {
 	}
 	*sa.value = alg
 	return nil
+}
+
+func signAlgorithmCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	out := []string{}
+	for _, s := range pcert.SignatureAlgorithms {
+		out = append(out, s.String())
+	}
+	return out, cobra.ShellCompDirectiveNoFileComp
 }

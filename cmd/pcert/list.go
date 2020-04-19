@@ -18,19 +18,19 @@ func newListCmd() *cobra.Command {
 			t := args[0]
 			switch t {
 			case "key-usage":
-				for u, _ := range pcert.KeyUsages {
+				for u := range pcert.KeyUsages {
 					fmt.Println(u)
 				}
 			case "ext-key-usage":
-				for u, _ := range pcert.ExtKeyUsages {
+				for u := range pcert.ExtKeyUsages {
 					fmt.Println(u)
 				}
 			case "sign-alg":
-				for s, _ := range pcert.SignatureAlgorithms {
+				for s := range pcert.SignatureAlgorithms {
 					fmt.Println(s)
 				}
 			case "key-alg":
-				for k, _ := range pcert.PublicKeyAlgorithms {
+				for k := range pcert.PublicKeyAlgorithms {
 					fmt.Println(k)
 				}
 			default:

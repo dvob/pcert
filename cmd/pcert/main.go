@@ -115,16 +115,17 @@ func (a *app) bindCertFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVar(&a.server, "server", false, "Create a server certificate")
 	cmd.Flags().BoolVar(&a.client, "client", false, "Create a client certificate")
 	cmd.Flags().Var(newDurationValue(&a.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
-	cmdutil.BindCertificateFlags(cmd.Flags(), a.cert, "")
-	cmdutil.RegisterCompletionFuncs(cmd)
+	cmdutil.BindCertificateFlags(cmd.Flags(), a.cert)
+	cmdutil.RegisterCertificateCompletionFuncs(cmd)
 
 	// output
 	cmd.Flags().StringVar(&a.certFile, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
 }
 
 func (a *app) bindKeyFlags(cmd *cobra.Command) {
-	cmdutil.BindKeyFlags(cmd.Flags(), &a.keyConfig, "")
 	cmd.Flags().StringVar(&a.keyFile, "key", "", "Output file for the key. Defaults to <name>.key")
+	cmdutil.BindKeyFlags(cmd.Flags(), &a.keyConfig)
+	cmdutil.RegisterKeyCompletionFuncs(cmd)
 }
 
 func (a *app) bindSignFlags(cmd *cobra.Command) {

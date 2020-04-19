@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DefaultKeyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
+	defaultKeyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
 )
 
 // NewCertificate returns a new certificate which have the CommonName set to name
@@ -60,7 +60,7 @@ func SetServerProfile(cert *x509.Certificate) {
 	addExtKeyUsage(cert, x509.ExtKeyUsageClientAuth)
 	cert.BasicConstraintsValid = true
 	cert.IsCA = false
-	cert.KeyUsage |= DefaultKeyUsage
+	cert.KeyUsage |= defaultKeyUsage
 }
 
 // SetCAProfile sets typical characteristics of a CA certificate.
@@ -76,7 +76,7 @@ func SetClientProfile(cert *x509.Certificate) {
 	addExtKeyUsage(cert, x509.ExtKeyUsageClientAuth)
 	cert.BasicConstraintsValid = true
 	cert.IsCA = false
-	cert.KeyUsage |= DefaultKeyUsage
+	cert.KeyUsage |= defaultKeyUsage
 }
 
 func addExtKeyUsage(cert *x509.Certificate, newUsage x509.ExtKeyUsage) {

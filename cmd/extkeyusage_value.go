@@ -42,7 +42,7 @@ func (eku *extKeyUsageValue) Set(usageStr string) error {
 
 func extKeyUsageCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	out := []string{}
-	for u, _ := range pcert.ExtKeyUsages {
+	for u := range pcert.ExtKeyUsages {
 		out = append(out, u)
 	}
 	return out, cobra.ShellCompDirectiveNoFileComp

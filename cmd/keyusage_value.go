@@ -42,7 +42,7 @@ func (ku *keyUsageValue) Set(usageStr string) error {
 
 func keyUsageCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	out := []string{}
-	for u, _ := range pcert.KeyUsages {
+	for u := range pcert.KeyUsages {
 		out = append(out, u)
 	}
 	return out, cobra.ShellCompDirectiveNoFileComp
