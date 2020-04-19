@@ -3,7 +3,7 @@ package cmd
 import (
 	"crypto/x509"
 	"fmt"
-	"strconv"
+	"strings"
 
 	"github.com/dsbrng25b/pcert"
 )
@@ -23,14 +23,18 @@ func (ku *keyUsageValue) Type() string {
 }
 
 func (ku *keyUsageValue) String() string {
-	return strconv.Itoa(int(*ku.value))
+	return pcert.KeyUsageToString(*ku.value)
 }
 
-func (ku *keyUsageValue) Set(usage string) error {
-	x509Usage, ok := pcert.KeyUsages[usage]
-	if !ok {
-		return fmt.Errorf("unknown usage: %s", usage)
+func (ku *keyUsageValue) Set(usageStr string) error {
+	var newUsages x509.KeyUsage
+	for _, u := range strings.Split(usageStr, ",") {
+		x509KeyUsage, ok := pcert.KeyUsages[u]
+		if !ok {
+			return fmt.Errorf("unknown usage: %s", u)
+		}
+		newUsages |= x509KeyUsage
 	}
-	*ku.value |= x509Usage
+	*ku.value |= newUsages
 	return nil
 }

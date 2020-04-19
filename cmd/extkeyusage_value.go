@@ -3,6 +3,7 @@ package cmd
 import (
 	"crypto/x509"
 	"fmt"
+	"strings"
 
 	"github.com/dsbrng25b/pcert"
 )
@@ -22,14 +23,18 @@ func (eku *extKeyUsageValue) Type() string {
 }
 
 func (eku *extKeyUsageValue) String() string {
-	return fmt.Sprintf("%d", *eku.value)
+	return pcert.ExtKeyUsageToString(*eku.value)
 }
 
-func (eku *extKeyUsageValue) Set(usage string) error {
-	x509ExtUsage, ok := pcert.ExtKeyUsages[usage]
-	if !ok {
-		return fmt.Errorf("unknown usage: %s", usage)
+func (eku *extKeyUsageValue) Set(usageStr string) error {
+	usages := []x509.ExtKeyUsage{}
+	for _, u := range strings.Split(usageStr, ",") {
+		x509ExtUsage, ok := pcert.ExtKeyUsages[u]
+		if !ok {
+			return fmt.Errorf("unknown usage: %s", u)
+		}
+		usages = append(usages, x509ExtUsage)
 	}
-	*eku.value = append(*eku.value, x509ExtUsage)
+	*eku.value = append(*eku.value, usages...)
 	return nil
 }
