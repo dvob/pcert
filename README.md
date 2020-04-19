@@ -26,7 +26,12 @@ All created certificates, keys and CSRs are saved PEM encoded and all files whic
 
 All options can also be specified using environment variables in the form `PCERT_<OPTION>` (e.g. `--sign-cert` is `PCERT_SIGN_CERT`).
 
-### Self-Signed
+Shell completion can be enabled for `bash` and `zsh`. It supports not only completion for the commands, but also for certain flags (e.g. `--key-usage`, `--ext-key-usage`, `--sign-alg`) where the valid options are hard to remember.
+```shell
+source <( pcert completion bash )
+```
+
+### Self-Signed Certificates
 If no options for signing are specified a self-signed certificate is created. This is used for the creation of a CA certificates or for test purposes.
 
 Create a CA certificate `myca.crt` and key `myca.key`:
@@ -34,7 +39,7 @@ Create a CA certificate `myca.crt` and key `myca.key`:
 pcert create myca --ca
 ```
 
-### Signed
+### Signed Certificates
 To sign a new certificate with an existing certificate and key, you can use the options `--sign-cert <file>` and `--sign-key <file>`. For these two options there is also the shortform `--from <name>`, which uses the files `<name>.crt` and `<name>.key`.
 
 Create a server certificate signed from `myca.crt` and `myca.key`:
@@ -83,12 +88,30 @@ Create CA certificate and key in `~/pki`:
 mkdir ~/pki
 pcert create ca --ca --cert ~/pki/ca.crt --key ~/pki/ca.key
 ```
-If you like you can add the newly created certificate to you system trust store.
+If you like you can add the newly created certificate `~/pki/ca.crt` to you system trust store.
 
-Now we set `PCERT_SIGN_CERT` and `PCERT_SIGN_KEY` that all newly created certificates are signed with our CA in `~/pki`. This could be added to `.bashrc`:
+Now we set `PCERT_SIGN_CERT` and `PCERT_SIGN_KEY` that all newly created certificates are signed with our CA in `~/pki`. This could be added for example to `.bashrc`:
 ```shell
 export PCERT_SIGN_CERT=~/pki/ca.crt
 export PCERT_SIGN_KEY=~/pki/ca.key
 ```
 
 From now on if we use `pcert create` it creates certificates which are signed by our local CA.
+
+### Intermediate CA
+This example shows how to make an intermediate CA certificate:
+
+Create root CA certificate and key:
+```shell
+pcert create myroot --ca
+```
+
+Create intermediate CA certificate:
+```shell
+pcert create myindtermediate --ca --sign-cert myroot.crt --sign-key myroot.key
+```
+
+Create server certificate from the intermediate CA:
+```shell
+pcert create myserver --server --sign-cert myindtermediate.crt --sign-key myindtermediate.key --server --sign-cert myindtermediate.crt --sign-key myindtermediate.key
+```
