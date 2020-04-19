@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/dsbrng25b/pcert"
-	"github.com/dsbrng25b/pcert/pem"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +29,7 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			csr, err := pem.LoadCSR(csrFile)
+			csr, err := pcert.LoadCSR(csrFile)
 			if err != nil {
 				return err
 			}

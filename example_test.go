@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
-	"github.com/dsbrng25b/pcert/pem"
 )
 
 // Create a key and a self-signed certificate and save it to server.crt and server.key
@@ -34,12 +32,12 @@ func ExampleCreate_selfSigned() {
 // Load a root CA from ca.crt and ca.key and use it to create a signed server certificate
 func ExampleCreate_signed() {
 	// load root CA
-	rootCACert, err := pem.Load("ca.crt")
+	rootCACert, err := Load("ca.crt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rootCAKey, err := pem.LoadKey("ca.key")
+	rootCAKey, err := LoadKey("ca.key")
 	if err != nil {
 		log.Fatal(err)
 	}

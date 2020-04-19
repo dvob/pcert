@@ -9,7 +9,6 @@ import (
 
 	"github.com/dsbrng25b/pcert"
 	cmdutil "github.com/dsbrng25b/pcert/cmd"
-	"github.com/dsbrng25b/pcert/pem"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -54,11 +53,11 @@ func (a *app) setupSignSettings() (err error) {
 		return nil
 	}
 
-	a.signCert, err = pem.Load(a.signCertFile)
+	a.signCert, err = pcert.Load(a.signCertFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing certificate: %w", err)
 	}
-	a.signKey, err = pem.LoadKey(a.signKeyFile)
+	a.signKey, err = pcert.LoadKey(a.signKeyFile)
 	if err != nil {
 		return fmt.Errorf("failed to read signing key: %w", err)
 	}
