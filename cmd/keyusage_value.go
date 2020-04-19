@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dsbrng25b/pcert"
+	"github.com/spf13/cobra"
 )
 
 type keyUsageValue struct {
@@ -37,4 +38,12 @@ func (ku *keyUsageValue) Set(usageStr string) error {
 	}
 	*ku.value |= newUsages
 	return nil
+}
+
+func keyUsageCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	out := []string{}
+	for u, _ := range pcert.KeyUsages {
+		out = append(out, u)
+	}
+	return out, cobra.ShellCompDirectiveNoFileComp
 }

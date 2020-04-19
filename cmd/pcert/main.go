@@ -116,25 +116,10 @@ func (a *app) bindCertFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVar(&a.client, "client", false, "Create a client certificate")
 	cmd.Flags().Var(newDurationValue(&a.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
 	cmdutil.BindCertificateFlags(cmd.Flags(), a.cert, "")
+	cmdutil.RegisterCompletionFuncs(cmd)
 
 	// output
 	cmd.Flags().StringVar(&a.certFile, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
-
-	// TODO: move these
-	cmd.RegisterFlagCompletionFunc("key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		out := []string{}
-		for u, _ := range pcert.KeyUsages {
-			out = append(out, u)
-		}
-		return out, cobra.ShellCompDirectiveNoFileComp
-	})
-	cmd.RegisterFlagCompletionFunc("ext-key-usage", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		out := []string{}
-		for u, _ := range pcert.ExtKeyUsages {
-			out = append(out, u)
-		}
-		return out, cobra.ShellCompDirectiveNoFileComp
-	})
 }
 
 func (a *app) bindKeyFlags(cmd *cobra.Command) {

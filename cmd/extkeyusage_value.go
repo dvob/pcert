@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dsbrng25b/pcert"
+	"github.com/spf13/cobra"
 )
 
 type extKeyUsageValue struct {
@@ -37,4 +38,12 @@ func (eku *extKeyUsageValue) Set(usageStr string) error {
 	}
 	*eku.value = append(*eku.value, usages...)
 	return nil
+}
+
+func extKeyUsageCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	out := []string{}
+	for u, _ := range pcert.ExtKeyUsages {
+		out = append(out, u)
+	}
+	return out, cobra.ShellCompDirectiveNoFileComp
 }

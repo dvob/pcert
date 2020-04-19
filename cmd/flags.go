@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/dsbrng25b/pcert"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -29,4 +30,9 @@ func BindCertificateFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix stri
 func BindKeyFlags(fs *pflag.FlagSet, keyConfig *pcert.KeyConfig, prefix string) {
 	fs.StringVar(&keyConfig.Algorithm, prefix+"key-alg", keyConfig.Algorithm, "Key Algorithm")
 	fs.IntVar(&keyConfig.Size, prefix+"key-size", keyConfig.Size, "Key Size")
+}
+
+func RegisterCompletionFuncs(cmd *cobra.Command) {
+	cmd.RegisterFlagCompletionFunc("key-usage", keyUsageCompletionFunc)
+	cmd.RegisterFlagCompletionFunc("ext-key-usage", extKeyUsageCompletionFunc)
 }
