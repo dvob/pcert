@@ -17,9 +17,9 @@ func newSignCmd(cfg *app) *cobra.Command {
 			csrFile := args[0]
 			if strings.HasSuffix(csrFile, ".csr") {
 				// myfile.csr -> myfile.crt
-				defaultSetting(&cfg.certFile, csrFile[:len(csrFile)-len(CSRFileSuffix)]+CertFileSuffix)
+				defaultSetting(&cfg.certFile, csrFile[:len(csrFile)-len(csrFileSuffix)]+certFileSuffix)
 			} else {
-				defaultSetting(&cfg.certFile, csrFile+CertFileSuffix)
+				defaultSetting(&cfg.certFile, csrFile+certFileSuffix)
 			}
 
 			cfg.applyCertOptions()

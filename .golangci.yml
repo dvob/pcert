@@ -5,3 +5,8 @@ linters:
   - goimports
   - golint
   - maligned
+issues:
+  exclude-use-default: false
+  #linters-settings:
+  #golint:
+  #  min-confidence: 0

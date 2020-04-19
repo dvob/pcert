@@ -74,8 +74,8 @@ func ExampleCreateWithKeyConfig() {
 		log.Fatal(err)
 	}
 
-	os.Stdout.Write(certPEM)
-	os.Stdout.Write(keyPEM)
+	_, _ = os.Stdout.Write(certPEM)
+	_, _ = os.Stdout.Write(keyPEM)
 }
 
 func ExampleExtKeyUsageToString() {

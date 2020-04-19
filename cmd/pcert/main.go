@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	EnvVarPrefix   = "PCERT_"
-	CertFileSuffix = ".crt"
-	KeyFileSuffix  = ".key"
-	CSRFileSuffix  = ".csr"
+	envVarPrefix   = "PCERT_"
+	certFileSuffix = ".crt"
+	keyFileSuffix  = ".key"
+	csrFileSuffix  = ".csr"
 )
 
 type app struct {
@@ -45,8 +45,8 @@ type app struct {
 
 func (a *app) setupSignSettings() (err error) {
 	if a.signFrom != "" {
-		a.signCertFile = a.signFrom + CertFileSuffix
-		a.signKeyFile = a.signFrom + KeyFileSuffix
+		a.signCertFile = a.signFrom + certFileSuffix
+		a.signKeyFile = a.signFrom + keyFileSuffix
 	}
 
 	if a.signCertFile == "" && a.signKeyFile == "" {
@@ -101,10 +101,10 @@ func (a *app) applyExpiry() {
 
 func (a *app) defaultOutputSettings(name string) {
 	if a.certFile == "" {
-		a.certFile = name + CertFileSuffix
+		a.certFile = name + certFileSuffix
 	}
 	if a.keyFile == "" {
-		a.keyFile = name + KeyFileSuffix
+		a.keyFile = name + keyFileSuffix
 	}
 }
 
@@ -167,7 +167,7 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
 				optName := strings.ToUpper(f.Name)
 				optName = strings.ReplaceAll(optName, "-", "_")
-				varName := EnvVarPrefix + optName
+				varName := envVarPrefix + optName
 				if val, ok := os.LookupEnv(varName); !f.Changed && ok {
 					err2 := f.Value.Set(val)
 					if err2 != nil {
