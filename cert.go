@@ -18,7 +18,7 @@ const (
 
 // Create creates a x509.Certificate and a key with the default key config. See CreateWithKeyConfig for more details.
 func Create(cert *x509.Certificate, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
-	return CreateWithKeyConfig(cert, NewDefaultKeyConfig(), signCert, signKey)
+	return CreateWithKeyConfig(cert, KeyConfig{}, signCert, signKey)
 }
 
 // CreateWithKeyConfig creates a key and certificate. The certificate is signed
@@ -93,7 +93,7 @@ func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certific
 // Request creates a CSR based on cert and a key. The key is created with the
 // default key config. See RequestWithKeyConfig for more details.
 func Request(cert *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
-	return RequestWithKeyOption(cert, NewDefaultKeyConfig())
+	return RequestWithKeyOption(cert, KeyConfig{})
 }
 
 // RequestWithKeyOption creates a CSR based on cert and a key based on keyConfig.

@@ -3,7 +3,8 @@ package cmd
 import (
 	"crypto/x509"
 	"fmt"
-	"strconv"
+
+	"github.com/dsbrng25b/pcert"
 )
 
 type signAlgValue struct {
@@ -25,34 +26,16 @@ func (sa *signAlgValue) String() string {
 }
 
 func (sa *signAlgValue) Set(signAlgName string) error {
-	alg := getSignatureAlgorithmByName(signAlgName)
+	var alg x509.SignatureAlgorithm
+	for _, signAlg := range pcert.SignatureAlgorithms {
+		if signAlg.String() == signAlgName {
+			alg = signAlg
+			break
+		}
+	}
 	if alg == x509.UnknownSignatureAlgorithm {
 		return fmt.Errorf("unknown signature algorithm: %s", signAlgName)
 	}
 	*sa.value = alg
 	return nil
-}
-
-func getSignatureAlgorithmByName(name string) x509.SignatureAlgorithm {
-	for i, alg := range GetSignatureAlgorithms() {
-		if alg == name {
-			return x509.SignatureAlgorithm(i)
-		}
-	}
-	return x509.UnknownSignatureAlgorithm
-}
-
-func GetSignatureAlgorithms() []string {
-	maxAlgs := 100
-	algs := []string{}
-	for i := 0; i < maxAlgs; i++ {
-		indexStr := strconv.Itoa(i)
-		algStr := x509.SignatureAlgorithm(i).String()
-		if algStr == indexStr {
-			fmt.Println("jump out")
-			break
-		}
-		algs = append(algs, algStr)
-	}
-	return algs
 }

@@ -28,7 +28,7 @@ func BindCertificateFlags(fs *pflag.FlagSet, cert *x509.Certificate, prefix stri
 }
 
 func BindKeyFlags(fs *pflag.FlagSet, keyConfig *pcert.KeyConfig, prefix string) {
-	fs.StringVar(&keyConfig.Algorithm, prefix+"key-alg", keyConfig.Algorithm, "Key Algorithm")
+	fs.Var(newKeyAlgorithmValue(&keyConfig.Algorithm), prefix+"key-alg", "Public Key Algorithm")
 	fs.IntVar(&keyConfig.Size, prefix+"key-size", keyConfig.Size, "Key Size")
 }
 

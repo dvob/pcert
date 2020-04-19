@@ -34,3 +34,22 @@ var ExtKeyUsages = map[string]x509.ExtKeyUsage{
 	"ServerAuth":                     x509.ExtKeyUsageServerAuth,
 	"TimeStamping":                   x509.ExtKeyUsageTimeStamping,
 }
+
+var SignatureAlgorithms = []x509.SignatureAlgorithm{
+	x509.DSAWithSHA1,
+	x509.DSAWithSHA256,
+	x509.ECDSAWithSHA1,
+	x509.ECDSAWithSHA256,
+	x509.ECDSAWithSHA384,
+	x509.ECDSAWithSHA512,
+	x509.MD2WithRSA,
+	x509.MD5WithRSA,
+	x509.PureEd25519,
+	x509.SHA1WithRSA,
+	x509.SHA256WithRSA,
+	x509.SHA256WithRSAPSS,
+	x509.SHA384WithRSA,
+	x509.SHA384WithRSAPSS,
+	x509.SHA512WithRSA,
+	x509.SHA512WithRSAPSS,
+}

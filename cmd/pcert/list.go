@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/dsbrng25b/pcert"
-	cmdutil "github.com/dsbrng25b/pcert/cmd"
 	"github.com/spf13/cobra"
 )
 
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:       "list <type>",
+		Use:       "list <option>",
+		Short:     "List avialable settings for options.",
+		Long:      "List avialable settings for the following options: key-usage, ext-key-usage, sign-alg, key-alg",
 		ValidArgs: []string{"key-usage", "ext-key-usage", "sign-alg", "key-alg"},
 		Args:      cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -25,13 +26,13 @@ func newListCmd() *cobra.Command {
 					fmt.Println(u)
 				}
 			case "sign-alg":
-				for _, a := range cmdutil.GetSignatureAlgorithms() {
-					fmt.Println(a)
+				for s, _ := range pcert.SignatureAlgorithms {
+					fmt.Println(s)
 				}
 			case "key-alg":
-				fmt.Println("rsa")
-				fmt.Println("ecdsa")
-				fmt.Println("ed25519")
+				for k, _ := range pcert.PublicKeyAlgorithms {
+					fmt.Println(k)
+				}
 			default:
 				return fmt.Errorf("unknown type: %s", t)
 			}

@@ -140,14 +140,20 @@ func defaultSetting(setting *string, value string) {
 }
 
 func main() {
-	newRootCmd().Execute()
+	err := newRootCmd().Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 func newRootCmd() *cobra.Command {
 	var cfg = &app{
-		cert:      &x509.Certificate{},
-		expiry:    pcert.DefaultValidityPeriod,
-		keyConfig: pcert.NewDefaultKeyConfig(),
+		cert:   &x509.Certificate{},
+		expiry: pcert.DefaultValidityPeriod,
+		keyConfig: pcert.KeyConfig{
+			Algorithm: x509.ECDSA,
+		},
 	}
 	cmd := &cobra.Command{
 		Use:   "pcert",
@@ -169,6 +175,8 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 					}
 				}
 			})
+			cmd.SilenceUsage = true
+			cmd.SilenceErrors = true
 			return err
 		},
 	}

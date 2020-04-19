@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate go run keyusage_gen.go
+//go:generate go run x509_lists_gen.go
 
 func KeyUsageToString(bitmask x509.KeyUsage) string {
 	usages := []string{}
