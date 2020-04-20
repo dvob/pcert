@@ -11,7 +11,12 @@
 pcert create myca --ca
 
 # create server certificate
-pcert create myapp.company.com --from myca --server --dns api.myapp.company.com --dns localhost --ip 127.0.0.1 --ip 192.168.10.5
+pcert create myapp.company.com --from myca \
+	--server \
+	--dns api.myapp.company.com \
+	--dns localhost \
+	--ip 127.0.0.1 \
+	--ip 192.168.10.5
 
 # create client certificate
 pcert create myuser --client --from myca
@@ -51,7 +56,11 @@ pcert create myUser --client --from myca
 ### Subject Alternative Names (SANs)
 To set subject alternative names on certificates you can use the options `--dns`, `--ip`, `--email` and `--uri`:
 ```shell
-pcert create api.test.local --server --from myca --dns api1.test.local --dns superapi.test.local --ip 127.0.0.1 --ip 192.168.23.5
+pcert create api.test.local --from myca --server \
+	--dns api1.test.local \
+	--dns superapi.test.local \
+	--ip 127.0.0.1 \
+	--ip 192.168.23.5
 ```
 
 ### Profiles
@@ -109,5 +118,5 @@ pcert create myindtermediate --ca --sign-cert myroot.crt --sign-key myroot.key
 
 Create server certificate from the intermediate CA:
 ```shell
-pcert create myserver --server --sign-cert myindtermediate.crt --sign-key myindtermediate.key --server --sign-cert myindtermediate.crt --sign-key myindtermediate.key
+pcert create myserver --server --sign-cert myindtermediate.crt --sign-key myindtermediate.key
 ```
