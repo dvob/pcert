@@ -9,6 +9,16 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// BindCertificateRequestFlags binds flags to a x509.CertificateRequest
+func BindCertificateRequestFlags(fs *pflag.FlagSet, csr *x509.CertificateRequest) {
+	fs.StringSliceVar(&csr.DNSNames, "dns", []string{}, "DNS subject alternative name")
+	fs.StringSliceVar(&csr.EmailAddresses, "email", []string{}, "Email subject alternative name")
+	fs.IPSliceVar(&csr.IPAddresses, "ip", []net.IP{}, "IP subject alternative name")
+	fs.Var(newURISliceValue(&csr.URIs), "uri", "URI subject alternative name")
+	fs.Var(newSignAlgValue(&csr.SignatureAlgorithm), "sign-alg", "Signature Algorithm")
+	fs.Var(newSubjectValue(&csr.Subject), "subject", "Subject in the form '/C=CH/O=My Org/OU=My Team'")
+}
+
 // BindCertificateFlags binds flags to a x509.Certificate
 func BindCertificateFlags(fs *pflag.FlagSet, cert *x509.Certificate) {
 	fs.StringSliceVar(&cert.DNSNames, "dns", []string{}, "DNS subject alternative name")
@@ -34,14 +44,19 @@ func BindKeyFlags(fs *pflag.FlagSet, keyConfig *pcert.KeyConfig) {
 	fs.IntVar(&keyConfig.Size, "key-size", keyConfig.Size, "Key Size. This defaults to 256 for ECDSA and to 2048 for RSA.")
 }
 
-// RegisterCertificateCompletionFuncs can be used together with BindCertificateFlags to enable shell completion for certain flags
+// RegisterCertificateCompletionFuncs can be used after with BindCertificateFlags to enable shell completion for certain flags
 func RegisterCertificateCompletionFuncs(cmd *cobra.Command) {
 	_ = cmd.RegisterFlagCompletionFunc("key-usage", keyUsageCompletionFunc)
 	_ = cmd.RegisterFlagCompletionFunc("ext-key-usage", extKeyUsageCompletionFunc)
 	_ = cmd.RegisterFlagCompletionFunc("sign-alg", signAlgorithmCompletionFunc)
 }
 
-// RegisterKeyCompletionFuncs can be used together with BindKeyFlags to enable shell completion for certain flags
+// RegisterCertificateRequestCompletionFuncs can be used after BindCertificateRequestFlags to enable shell completion for certain flags
+func RegisterCertificateRequestCompletionFuncs(cmd *cobra.Command) {
+	_ = cmd.RegisterFlagCompletionFunc("sign-alg", signAlgorithmCompletionFunc)
+}
+
+// RegisterKeyCompletionFuncs can be used after with BindKeyFlags to enable shell completion for certain flags
 func RegisterKeyCompletionFuncs(cmd *cobra.Command) {
 	_ = cmd.RegisterFlagCompletionFunc("key-alg", keyAlgorithmCompletionFunc)
 }

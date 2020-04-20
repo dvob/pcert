@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"math/big"
+	"reflect"
 	"time"
 )
 
@@ -88,15 +90,16 @@ func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certific
 	return Encode(der), nil
 }
 
-// Request creates a CSR based on cert and a key. The key is created with the
-// default key config. See RequestWithKeyConfig for more details.
-func Request(cert *x509.Certificate) (csrPEM []byte, keyPEM []byte, err error) {
-	return RequestWithKeyOption(cert, KeyConfig{})
+// Request creates a CSR and a key. The key is created with the default key
+// config. See RequestWithKeyConfig for more details.
+func Request(csr *x509.CertificateRequest) (csrPEM []byte, keyPEM []byte, err error) {
+	return RequestWithKeyOption(csr, KeyConfig{})
 }
 
-// RequestWithKeyOption creates a CSR based on cert and a key based on keyConfig.
-// The key is created with the default key config. See RequestWithKeyConfig for more details.
-func RequestWithKeyOption(cert *x509.Certificate, keyConfig KeyConfig) (csrPEM []byte, keyPEM []byte, err error) {
+// RequestWithKeyOption creates a CSR and a key based on keyConfig.  The key is
+// created with the default key config. See RequestWithKeyConfig for more
+// details.
+func RequestWithKeyOption(csr *x509.CertificateRequest, keyConfig KeyConfig) (csrPEM []byte, keyPEM []byte, err error) {
 	priv, _, err := GenerateKey(keyConfig)
 	if err != nil {
 		return
@@ -107,7 +110,7 @@ func RequestWithKeyOption(cert *x509.Certificate, keyConfig KeyConfig) (csrPEM [
 		return
 	}
 
-	der, err := x509.CreateCertificateRequest(rand.Reader, toCSR(cert), priv)
+	der, err := x509.CreateCertificateRequest(rand.Reader, csr, priv)
 	if err != nil {
 		return
 	}
@@ -131,23 +134,26 @@ func applyCSR(csr *x509.CertificateRequest, cert *x509.Certificate) {
 	cert.SignatureAlgorithm = csr.SignatureAlgorithm
 	cert.PublicKeyAlgorithm = csr.PublicKeyAlgorithm
 	cert.PublicKey = csr.PublicKey
-	cert.Subject = csr.Subject
-	cert.DNSNames = csr.DNSNames
-	cert.EmailAddresses = csr.EmailAddresses
-	cert.IPAddresses = csr.IPAddresses
-	cert.URIs = csr.URIs
-	cert.ExtraExtensions = csr.ExtraExtensions
-}
 
-func toCSR(cert *x509.Certificate) *x509.CertificateRequest {
-	return &x509.CertificateRequest{
-		SignatureAlgorithm: cert.SignatureAlgorithm,
-		Subject:            cert.Subject,
-		DNSNames:           cert.DNSNames,
-		EmailAddresses:     cert.EmailAddresses,
-		IPAddresses:        cert.IPAddresses,
-		URIs:               cert.URIs,
-		ExtraExtensions:    cert.ExtraExtensions,
+	emptySubject := pkix.Name{}
+	if reflect.DeepEqual(cert.Subject, emptySubject) {
+		cert.Subject = csr.Subject
+	}
+
+	if cert.DNSNames == nil {
+		cert.DNSNames = csr.DNSNames
+	}
+
+	if cert.EmailAddresses == nil {
+		cert.EmailAddresses = csr.EmailAddresses
+	}
+
+	if cert.IPAddresses == nil {
+		cert.IPAddresses = csr.IPAddresses
+	}
+
+	if cert.URIs == nil {
+		cert.URIs = csr.URIs
 	}
 }
 

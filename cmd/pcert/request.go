@@ -1,15 +1,18 @@
 package main
 
 import (
+	"crypto/x509"
 	"io/ioutil"
 
 	"github.com/dsbrng25b/pcert"
+	cmdutil "github.com/dsbrng25b/pcert/cmd"
 	"github.com/spf13/cobra"
 )
 
 func newRequestCmd(cfg *app) *cobra.Command {
 	var (
 		csrFile string
+		csr     = &x509.CertificateRequest{}
 	)
 	cmd := &cobra.Command{
 		Use:   "request <name>",
@@ -21,9 +24,8 @@ func newRequestCmd(cfg *app) *cobra.Command {
 			defaultSetting(&cfg.cert.Subject.CommonName, name)
 			defaultSetting(&csrFile, name+csrFileSuffix)
 			cfg.defaultOutputSettings(name)
-			cfg.applyProfile()
 
-			csr, key, err := pcert.RequestWithKeyOption(cfg.cert, cfg.keyConfig)
+			csr, key, err := pcert.RequestWithKeyOption(csr, cfg.keyConfig)
 			if err != nil {
 				return err
 			}
@@ -37,8 +39,9 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		},
 	}
 
+	cmdutil.BindCertificateRequestFlags(cmd.Flags(), csr)
+	cmdutil.RegisterCertificateRequestCompletionFuncs(cmd)
 	cfg.bindKeyFlags(cmd)
-	cfg.bindCertFlags(cmd)
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 	return cmd
 }
