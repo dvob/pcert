@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"os"
 	"testing"
 
@@ -13,28 +14,46 @@ func runCmd(args []string) error {
 	return cmd.Execute()
 }
 
-func Test_create(t *testing.T) {
-	name := "foo1"
+func runCreateAndLoad(name string, args []string) (*x509.Certificate, error) {
 	defer os.Remove(name + ".crt")
 	defer os.Remove(name + ".key")
-	err := runCmd([]string{"create", name})
+	fullArgs := []string{"create", name}
+	fullArgs = append(fullArgs, args...)
+	err := runCmd(fullArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	cert, err := pcert.Load(name + ".crt")
+	return cert, err
+}
+
+func Test_create(t *testing.T) {
+	name := "foo1"
+	cert, err := runCreateAndLoad("foo1", []string{})
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	cert, err := pcert.Load(name + ".crt")
-	if err != nil {
-		t.Errorf("could not load certificate: %w", err)
-	}
-
-	_, err = pcert.LoadKey(name + ".key")
-	if err != nil {
-		t.Errorf("could not load key: %w", err)
-	}
-
 	if cert.Subject.CommonName != name {
 		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, name)
+	}
+}
+
+func Test_create_subject(t *testing.T) {
+	cn := "myCommonName"
+	cert, err := runCreateAndLoad("foo2", []string{
+		"--subject",
+		"CN=" + cn,
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if cert.Subject.CommonName != cn {
+		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, cn)
 	}
 }
 
