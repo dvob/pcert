@@ -47,11 +47,11 @@ func CreateWithKeyConfig(cert *x509.Certificate, keyConfig KeyConfig, signCert *
 // Sign set some defaults on cert and signs it with signCert and signKey.
 // The following defaults are set if the values are not set explicitly yet:
 //
-// - SubjectKeyId is generated based on the publicKey
-// - The AuthorityKeyId is set based on the SubjectKeyId of the signCert
-// - NotBefore is set to time.Now()
-// - NotAfter is set to NotBefore + DefaultValidityPeriod
-// - SerialNumber is set to a randomly generated serial number
+//   - SubjectKeyId is generated based on the publicKey
+//   - The AuthorityKeyId is set based on the SubjectKeyId of the signCert
+//   - NotBefore is set to time.Now()
+//   - NotAfter is set to NotBefore + DefaultValidityPeriod
+//   - SerialNumber is set to a randomly generated serial number
 //
 // The created certificate is returned PEM encoded.
 func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {

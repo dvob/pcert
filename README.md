@@ -69,7 +69,24 @@ To ease the creation of certificates with certain characteristics theare are thr
 * Server: `--server`
 * Client: `--client`
 
-If you use these options, settings (e.g key usage) which are typical for the specific profile are set for you.
+If you use these options, settings (e.g key usage) which are typical for the specific profile are set for you. The same effect can be achieved by using the appropriate options individually.
+
+### Expiry
+The validity period of certificates default to one year starting from the creation time.
+The period can be changed by using the options `--not-before`, `--not-after` and `--expiry`.
+The options `--not-before` and `--not-after` allow to set the NotBefore and NotAfter value to a certain date (RFC3339):
+```shell
+pcert create mycert --not-before 2020-01-01T12:00:00+01:00 --not-after 2020-06-01T12:00:00+01:00
+```
+
+The option `--expiry` allows to specify a duration instead of explicit dates:
+```shell
+# certificate valid until 90days from now
+pcert create mycert --expiry 90d
+
+# certificate valid until 3 years (3 * 365 days)
+pcert create mycert --expiry 3y
+```
 
 ### Subject
 With the option `--subject` you can set the subject of the certificate:
