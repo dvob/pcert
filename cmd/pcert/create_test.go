@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dsbrng25b/pcert"
 )
@@ -54,6 +55,96 @@ func Test_create_subject(t *testing.T) {
 
 	if cert.Subject.CommonName != cn {
 		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, cn)
+	}
+}
+
+func Test_create_not_before(t *testing.T) {
+	notBefore := time.Date(2020, 10, 27, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
+	cert, err := runCreateAndLoad("foo3", []string{
+		"--not-before",
+		"2020-10-27T12:00:00+01:00",
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !cert.NotBefore.Equal(notBefore) {
+		t.Errorf("not before not set correctly: got: %s, want: %s", cert.NotBefore, notBefore)
+	}
+
+	notAfter := notBefore.Add(pcert.DefaultValidityPeriod)
+	if !cert.NotAfter.Equal(notAfter) {
+		t.Errorf("not after not set correctly: got: %s, want: %s", cert.NotAfter, notAfter)
+	}
+}
+
+func Test_create_not_before_and_not_after(t *testing.T) {
+	notBefore := time.Date(2020, 12, 30, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
+	notAfter := time.Date(2022, 12, 30, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
+	cert, err := runCreateAndLoad("foo4", []string{
+		"--not-before",
+		"2020-12-30T12:00:00+01:00",
+		"--not-after",
+		"2022-12-30T12:00:00+01:00",
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !cert.NotBefore.Equal(notBefore) {
+		t.Errorf("not before not set correctly: got: %s, want: %s", cert.NotBefore, notBefore)
+	}
+
+	if !cert.NotAfter.Equal(notAfter) {
+		t.Errorf("not after not set correctly: got: %s, want: %s", cert.NotAfter, notAfter)
+	}
+}
+
+func Test_create_with_expiry(t *testing.T) {
+	now := time.Now().Round(time.Minute)
+	cert, err := runCreateAndLoad("foo4", []string{
+		"--expiry",
+		"3y",
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	actualNotBefore := cert.NotBefore.Round(time.Minute)
+	if !actualNotBefore.Equal(now) {
+		t.Errorf("not before not set correctly: got: %s, want: %s", actualNotBefore, now)
+	}
+
+	expectedNotAfter := now.Add(time.Hour * 24 * 365 * 3)
+	actualNotAfter := cert.NotAfter.Round(time.Minute)
+	if !actualNotAfter.Equal(expectedNotAfter) {
+		t.Errorf("not after not set correctly: got: %s, want: %s", actualNotAfter, expectedNotAfter)
+	}
+}
+
+func Test_create_not_before_with_expiry(t *testing.T) {
+	notBefore := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	cert, err := runCreateAndLoad("foo4", []string{
+		"--not-before",
+		"2020-01-01T00:00:00Z",
+		"--expiry",
+		"90d",
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !cert.NotBefore.Equal(notBefore) {
+		t.Errorf("not before not set correctly: got: %s, want: %s", cert.NotBefore, notBefore)
+	}
+
+	expectedNotAfter := notBefore.Add(time.Hour * 24 * 90)
+	if !cert.NotAfter.Equal(expectedNotAfter) {
+		t.Errorf("not after not set correctly: got: %s, want: %s", cert.NotAfter, expectedNotAfter)
 	}
 }
 
