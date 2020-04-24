@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"os"
 	"testing"
 	"time"
@@ -55,6 +56,33 @@ func Test_create_subject(t *testing.T) {
 
 	if cert.Subject.CommonName != cn {
 		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, cn)
+	}
+}
+
+func Test_create_subject_combined(t *testing.T) {
+	subject := pkix.Name{
+		CommonName:         "Bla bla bla",
+		Country:            []string{"CH"},
+		Locality:           []string{"Bern"},
+		Organization:       []string{"Snakeoil Ltd."},
+		OrganizationalUnit: []string{"Group 1", "Group 2"},
+	}
+	cert, err := runCreateAndLoad("subject2", []string{
+		"--subject",
+		"CN=Bla bla bla/C=CH/L=Bern",
+		"--subject",
+		"O=Snakeoil Ltd.",
+		"--subject",
+		"OU=Group 1/OU=Group 2",
+	})
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if subject.String() != cert.Subject.String() {
+		t.Errorf("subject no set correctly: got: %#v, want: %#v", cert.Subject, subject)
 	}
 }
 
