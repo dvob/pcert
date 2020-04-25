@@ -20,6 +20,11 @@ const (
 	csrFileSuffix  = ".csr"
 )
 
+var (
+	version = "n/a"
+	commit  = "n/a"
+)
+
 type app struct {
 	// signer settings
 	signCertFile string
@@ -192,7 +197,19 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 		newSignCmd(cfg),
 		newListCmd(),
 		newCompletionCmd(),
+		newVersionCmd(),
 	)
+	return cmd
+}
+
+func newVersionCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "version",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("pcert", version, commit)
+			return nil
+		},
+	}
 	return cmd
 }
 

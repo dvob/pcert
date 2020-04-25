@@ -1,6 +1,10 @@
 project_name: pcert
 builds:
 - main: ./cmd/pcert/
+  ldflags:
+  - -s -w
+  - -X main.version={{.Version}}
+  - -X main.commit={{.Commit}}
   goos:
   - linux
   - darwin
