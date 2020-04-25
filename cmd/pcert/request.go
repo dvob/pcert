@@ -21,7 +21,7 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			defaultSetting(&cfg.cert.Subject.CommonName, name)
+			defaultSetting(&csr.Subject.CommonName, name)
 			defaultSetting(&csrFile, name+csrFileSuffix)
 			cfg.defaultOutputSettings(name)
 
