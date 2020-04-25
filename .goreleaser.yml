@@ -3,7 +3,7 @@ builds:
 - main: ./cmd/pcert/
   ldflags:
   - -s -w
-  - -X main.version={{.Version}}
+  - -X main.version=v{{.Version}}
   - -X main.commit={{.Commit}}
   goos:
   - linux
