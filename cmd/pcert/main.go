@@ -168,8 +168,14 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 				optName := strings.ToUpper(f.Name)
 				optName = strings.ReplaceAll(optName, "-", "_")
 				varName := envVarPrefix + optName
-				if val, ok := os.LookupEnv(varName); !f.Changed && ok {
-					err2 := f.Value.Set(val)
+				merger, merge := f.Value.(cmdutil.Merger)
+				if val, ok := os.LookupEnv(varName); ok {
+					var err2 error
+					if !f.Changed {
+						err2 = f.Value.Set(val)
+					} else if merge {
+						err2 = merger.Merge(val)
+					}
 					if err2 != nil {
 						err = fmt.Errorf("invalid environment variable %s: %w", varName, err2)
 					}

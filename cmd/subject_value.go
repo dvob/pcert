@@ -25,10 +25,14 @@ func (s *subjectValue) String() string {
 }
 
 func (s *subjectValue) Set(subject string) error {
-	return parseSubjectInto(subject, s.value)
+	return parseSubjectInto(subject, s.value, true)
 }
 
-func parseSubjectInto(subject string, target *pkix.Name) error {
+func (s *subjectValue) Merge(subject string) error {
+	return parseSubjectInto(subject, s.value, false)
+}
+
+func parseSubjectInto(subject string, target *pkix.Name, overwrite bool) error {
 	for _, part := range strings.Split(subject, "/") {
 		if part == "" {
 			continue
@@ -58,9 +62,13 @@ func parseSubjectInto(subject string, target *pkix.Name) error {
 		case "POSTALCODE":
 			target.PostalCode = append(target.PostalCode, value)
 		case "SERIALNUMBER":
-			target.SerialNumber = value
+			if overwrite {
+				target.SerialNumber = value
+			}
 		case "CN":
-			target.CommonName = value
+			if overwrite {
+				target.CommonName = value
+			}
 		default:
 			return fmt.Errorf("unknown field '%s'", key)
 		}
