@@ -1,13 +1,22 @@
 package main
 
 import (
+	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/dsbrng25b/pcert"
 	"github.com/spf13/cobra"
 )
 
-func newCreateCmd(cfg *app) *cobra.Command {
+func newCreateCmd() *cobra.Command {
+	var (
+		cert = &cert{
+			cert: &x509.Certificate{},
+		}
+		signPair = &signPair{}
+		key      = &key{}
+	)
 	cmd := &cobra.Command{
 		Use:   "create <name>",
 		Short: "Create a signed certificate and a key",
@@ -19,30 +28,44 @@ the key (<name>.key).`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			defaultSetting(&cfg.cert.Subject.CommonName, name)
-			cfg.defaultOutputSettings(name)
-			cfg.applyCertOptions()
 
-			err := cfg.setupSignSettings()
+			if cert.cert.Subject.CommonName == "" {
+				cert.cert.Subject.CommonName = name
+			}
+
+			if cert.path == "" {
+				cert.path = name + certFileSuffix
+			}
+
+			if key.path == "" {
+				key.path = name + keyFileSuffix
+			}
+
+			cert.configure()
+
+			err := signPair.load()
 			if err != nil {
 				return err
 			}
 
-			cert, key, err := pcert.CreateWithKeyConfig(cfg.cert, cfg.keyConfig, cfg.signCert, cfg.signKey)
+			certPEM, keyPEM, err := pcert.CreateWithKeyConfig(cert.cert, key.config, signPair.cert, signPair.key)
 			if err != nil {
 				return err
 			}
 
-			err = ioutil.WriteFile(cfg.keyFile, key, 0600)
+			err = ioutil.WriteFile(key.path, keyPEM, 0600)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = ioutil.WriteFile(cfg.certFile, cert, 0640)
-			return err
+			err = ioutil.WriteFile(cert.path, certPEM, 0640)
+			if err != nil {
+				return fmt.Errorf("failed to write certificate '%s': %w", key.path, err)
+			}
+			return nil
 		},
 	}
-	cfg.bindCertFlags(cmd)
-	cfg.bindSignFlags(cmd)
-	cfg.bindKeyFlags(cmd)
+	cert.bindFlags(cmd)
+	key.bindFlags(cmd)
+	signPair.bindFlags(cmd)
 	return cmd
 }

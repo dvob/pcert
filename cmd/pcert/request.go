@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/dsbrng25b/pcert"
@@ -9,10 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRequestCmd(cfg *app) *cobra.Command {
+func newRequestCmd() *cobra.Command {
 	var (
 		csrFile string
 		csr     = &x509.CertificateRequest{}
+		key     = &key{}
 	)
 	cmd := &cobra.Command{
 		Use:   "request <name>",
@@ -21,27 +23,40 @@ func newRequestCmd(cfg *app) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			defaultSetting(&csr.Subject.CommonName, name)
-			defaultSetting(&csrFile, name+csrFileSuffix)
-			cfg.defaultOutputSettings(name)
+			if csr.Subject.CommonName == "" {
+				csr.Subject.CommonName = name
+			}
 
-			csr, key, err := pcert.RequestWithKeyOption(csr, cfg.keyConfig)
+			if csrFile == "" {
+				csrFile = name + csrFileSuffix
+			}
+
+			if key.path == "" {
+				key.path = name + keyFileSuffix
+			}
+
+			csrPEM, keyPEM, err := pcert.RequestWithKeyOption(csr, key.config)
 			if err != nil {
 				return err
 			}
 
-			err = ioutil.WriteFile(cfg.keyFile, key, 0600)
+			err = ioutil.WriteFile(key.path, keyPEM, 0600)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = ioutil.WriteFile(csrFile, csr, 0640)
-			return err
+			err = ioutil.WriteFile(csrFile, csrPEM, 0640)
+			if err != nil {
+				return fmt.Errorf("failed to write CSR '%s': %w", csrFile, err)
+			}
+			return nil
 		},
 	}
 
+	key.bindFlags(cmd)
+
 	cmdutil.BindCertificateRequestFlags(cmd.Flags(), csr)
 	cmdutil.RegisterCertificateRequestCompletionFuncs(cmd)
-	cfg.bindKeyFlags(cmd)
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
+
 	return cmd
 }

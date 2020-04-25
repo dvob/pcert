@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"io/ioutil"
 	"strings"
 
@@ -8,23 +9,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newSignCmd(cfg *app) *cobra.Command {
+func newSignCmd() *cobra.Command {
+	var (
+		cert = &cert{
+			cert: &x509.Certificate{},
+		}
+		signPair = &signPair{}
+	)
 	cmd := &cobra.Command{
 		Use:   "sign <csr-file>",
 		Short: "Sign a CSR.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			csrFile := args[0]
-			if strings.HasSuffix(csrFile, ".csr") {
-				// myfile.csr -> myfile.crt
-				defaultSetting(&cfg.certFile, csrFile[:len(csrFile)-len(csrFileSuffix)]+certFileSuffix)
-			} else {
-				defaultSetting(&cfg.certFile, csrFile+certFileSuffix)
+			name := csrFile
+
+			if strings.HasSuffix(csrFile, csrFileSuffix) {
+				// myfile.csr -> myfile
+				name = csrFile[:len(csrFile)-len(csrFileSuffix)]
 			}
 
-			cfg.applyCertOptions()
+			if cert.path == "" {
+				cert.path = name + certFileSuffix
+			}
 
-			err := cfg.setupSignSettings()
+			cert.configure()
+
+			err := signPair.load()
 			if err != nil {
 				return err
 			}
@@ -34,16 +45,16 @@ func newSignCmd(cfg *app) *cobra.Command {
 				return err
 			}
 
-			cert, err := pcert.SignCSR(csr, cfg.cert, cfg.signCert, cfg.signKey)
+			certPEM, err := pcert.SignCSR(csr, cert.cert, signPair.cert, signPair.key)
 			if err != nil {
 				return err
 			}
-			err = ioutil.WriteFile(cfg.certFile, cert, 0640)
+			err = ioutil.WriteFile(cert.path, certPEM, 0640)
 			return err
 		},
 	}
 
-	cfg.bindCertFlags(cmd)
-	cfg.bindSignFlags(cmd)
+	cert.bindFlags(cmd)
+	signPair.bindFlags(cmd)
 	return cmd
 }
