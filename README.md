@@ -11,7 +11,7 @@
 pcert create myca --ca
 
 # create server certificate
-pcert create myapp.company.com --from myca \
+pcert create myapp.company.com withfrom myca \
 	--server \
 	--dns api.myapp.company.com \
 	--dns localhost \
@@ -19,7 +19,7 @@ pcert create myapp.company.com --from myca \
 	--ip 192.168.10.5
 
 # create client certificate
-pcert create myuser --client --from myca
+pcert create myuser --client --with myca
 ```
 
 ## General
@@ -41,22 +41,22 @@ pcert create myca --ca
 ```
 
 ### Signed Certificates
-To sign a new certificate with an existing certificate and key, you can use the options `--sign-cert <file>` and `--sign-key <file>`. For these two options there is also the shortform `--from <name>`, which uses the files `<name>.crt` and `<name>.key`.
+To sign a new certificate with an existing certificate and key, you can use the options `--sign-cert <file>` and `--sign-key <file>`. For these two options there is also the shortform `--with <name>`, which uses the files `<name>.crt` and `<name>.key`.
 
 Create a server certificate signed from `myca.crt` and `myca.key`:
 ```shell
-pcert create api.test.local --server --from myca
+pcert create api.test.local --server --with myca
 ```
 
 Create a client certificate signed from `myca.crt` and `myca.key`:
 ```shell
-pcert create myUser --client --from myca
+pcert create myUser --client --with myca
 ```
 
 ### Subject Alternative Names (SANs)
 To set subject alternative names on certificates you can use the options `--dns`, `--ip`, `--email` and `--uri`:
 ```shell
-pcert create api.test.local --from myca --server \
+pcert create api.test.local --with myca --server \
 	--dns api1.test.local \
 	--dns superapi.test.local \
 	--ip 127.0.0.1 \

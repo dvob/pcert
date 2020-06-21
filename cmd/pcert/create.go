@@ -20,7 +20,7 @@ func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <name>",
 		Short: "Create a signed certificate and a key",
-		Long: `Creates a key and certificate. If --from or --sign-cert and --sign-key
+		Long: `Creates a key and certificate. If --with or --sign-cert and --sign-key
 are specified the certificate is signed by these. Otherwise it will be self-signed.
 The argument <name> is used as common name in the certificate if not overwritten
 with the --subject option and as file name for the certificate (<name>.crt) and

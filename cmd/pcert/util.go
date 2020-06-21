@@ -82,7 +82,7 @@ type signPair struct {
 func (s *signPair) bindFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&s.certFile, "sign-cert", "", "Certificate used to sign the certificate")
 	cmd.Flags().StringVar(&s.keyFile, "sign-key", "", "Key used to sign the certificates")
-	cmd.Flags().StringVar(&s.shortPath, "from", "", "Specify a name of a key pair (<name>.crt, <name>.key) from which you want to sign your certificate. This can be used insted of --sign-cert and --sign-key")
+	cmd.Flags().StringVar(&s.shortPath, "with", "", "Specify a name of a key pair (<name>.crt, <name>.key) which you want to sign your certificate with. This can be used insted of --sign-cert and --sign-key")
 }
 
 func (s *signPair) load() error {
