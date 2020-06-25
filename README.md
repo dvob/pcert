@@ -27,7 +27,7 @@ With `pcert create <name>` you can create a new certificate and key. The output 
 The name is also set as the common name in the subject of the certificate. This can be changed with the `--subject` option (e.g `--subject "CN=My fancy name"`).  
 All created certificates, keys and CSRs are saved PEM encoded and all files which are read are expected to be PEM encoded as well.  
 All options can also be specified using environment variables in the form `PCERT_<OPTION>` (e.g. `--sign-cert` is `PCERT_SIGN_CERT`).  
-Shell completion can be enabled for `bash` and `zsh`. It supports not only completion for the commands, but also for certain flags (e.g. `--key-usage`, `--ext-key-usage`, `--sign-alg`) where the valid options are hard to remember.
+Shell completion can be enabled for `bash`, `zsh`, `fish` and `ps` (Power Shell). It supports not only completion for the commands, but also for certain flags (e.g. `--key-usage`, `--ext-key-usage`, `--sign-alg`) where the valid options are hard to remember.
 ```shell
 source <( pcert completion bash )
 ```
