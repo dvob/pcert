@@ -60,14 +60,14 @@ func (c *cert) configure() {
 }
 
 type key struct {
-	path   string
-	config pcert.KeyConfig
+	path string
+	opts pcert.KeyOptions
 }
 
 func (k *key) bindFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&k.path, "key", "", "Output file for the key. Defaults to <name>.key")
 
-	cmdutil.BindKeyFlags(cmd.Flags(), &k.config)
+	cmdutil.BindKeyFlags(cmd.Flags(), &k.opts)
 	cmdutil.RegisterKeyCompletionFuncs(cmd)
 }
 

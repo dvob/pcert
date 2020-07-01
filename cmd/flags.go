@@ -38,10 +38,10 @@ func BindCertificateFlags(fs *pflag.FlagSet, cert *x509.Certificate) {
 	fs.Var(newExtKeyUsageValue(&cert.ExtKeyUsage), "ext-key-usage", "Set the extended key usage")
 }
 
-// BindKeyFlags binds flags to a pcert.KeyConfig
-func BindKeyFlags(fs *pflag.FlagSet, keyConfig *pcert.KeyConfig) {
-	fs.Var(newKeyAlgorithmValue(&keyConfig.Algorithm), "key-alg", "Public Key Algorithm")
-	fs.IntVar(&keyConfig.Size, "key-size", keyConfig.Size, "Key Size. This defaults to 256 for ECDSA and to 2048 for RSA.")
+// BindKeyFlags binds flags to a pcert.KeyOptions
+func BindKeyFlags(fs *pflag.FlagSet, keyOptions *pcert.KeyOptions) {
+	fs.Var(newKeyAlgorithmValue(&keyOptions.Algorithm), "key-alg", "Public Key Algorithm")
+	fs.IntVar(&keyOptions.Size, "key-size", keyOptions.Size, "Key Size. This defaults to 256 for ECDSA and to 2048 for RSA.")
 }
 
 // RegisterCertificateCompletionFuncs can be used after with BindCertificateFlags to enable shell completion for certain flags

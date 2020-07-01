@@ -61,15 +61,15 @@ func ExampleCreate_signed() {
 }
 
 // Create a self-signed certificate with a 4096 bit RSA key
-func ExampleCreateWithKeyConfig() {
+func ExampleCreateWithKeyOptions() {
 	cert := NewServerCertificate("localhost")
 
-	keyConfig := KeyConfig{
+	keyOptions := KeyOptions{
 		Algorithm: x509.RSA,
 		Size:      4096,
 	}
 
-	certPEM, keyPEM, err := CreateWithKeyConfig(cert, keyConfig, nil, nil)
+	certPEM, keyPEM, err := CreateWithKeyOptions(cert, keyOptions, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

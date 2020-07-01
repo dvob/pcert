@@ -35,7 +35,7 @@ func newRequestCmd() *cobra.Command {
 				key.path = name + keyFileSuffix
 			}
 
-			csrPEM, keyPEM, err := pcert.RequestWithKeyOption(csr, key.config)
+			csrPEM, keyPEM, err := pcert.RequestWithKeyOptions(csr, key.opts)
 			if err != nil {
 				return err
 			}

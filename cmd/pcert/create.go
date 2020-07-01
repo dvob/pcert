@@ -48,7 +48,7 @@ the key (<name>.key).`,
 				return err
 			}
 
-			certPEM, keyPEM, err := pcert.CreateWithKeyConfig(cert.cert, key.config, signPair.cert, signPair.key)
+			certPEM, keyPEM, err := pcert.CreateWithKeyOptions(cert.cert, key.opts, signPair.cert, signPair.key)
 			if err != nil {
 				return err
 			}

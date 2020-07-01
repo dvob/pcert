@@ -16,16 +16,16 @@ const (
 	DefaultValidityPeriod = time.Hour * 24 * 365
 )
 
-// Create creates a x509.Certificate and a key with the default key config. See CreateWithKeyConfig for more details.
+// Create creates a x509.Certificate and a key with the default key options. See CreateWithKeyOptions for more details.
 func Create(cert *x509.Certificate, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
-	return CreateWithKeyConfig(cert, KeyConfig{}, signCert, signKey)
+	return CreateWithKeyOptions(cert, KeyOptions{}, signCert, signKey)
 }
 
-// CreateWithKeyConfig creates a key and certificate. The certificate is signed
+// CreateWithKeyOptions creates a key and certificate. The certificate is signed
 // used signCert and signKey. If signCert or signKey are nil, a self-signed
 // certificate will be created. The certificate and the key are returned PEM encoded.
-func CreateWithKeyConfig(cert *x509.Certificate, keyConfig KeyConfig, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
-	priv, pub, err := GenerateKey(keyConfig)
+func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+	priv, pub, err := GenerateKey(keyOptions)
 	if err != nil {
 		return
 	}
@@ -91,16 +91,15 @@ func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certific
 }
 
 // Request creates a CSR and a key. The key is created with the default key
-// config. See RequestWithKeyConfig for more details.
+// options. See RequestWithKeyOptions for more details.
 func Request(csr *x509.CertificateRequest) (csrPEM []byte, keyPEM []byte, err error) {
-	return RequestWithKeyOption(csr, KeyConfig{})
+	return RequestWithKeyOptions(csr, KeyOptions{})
 }
 
-// RequestWithKeyOption creates a CSR and a key based on keyConfig.  The key is
-// created with the default key config. See RequestWithKeyConfig for more
-// details.
-func RequestWithKeyOption(csr *x509.CertificateRequest, keyConfig KeyConfig) (csrPEM []byte, keyPEM []byte, err error) {
-	priv, _, err := GenerateKey(keyConfig)
+// RequestWithKeyOptions creates a CSR and a key based on key options.  The key is
+// created with the default key options.
+func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM []byte, keyPEM []byte, err error) {
+	priv, _, err := GenerateKey(keyOptions)
 	if err != nil {
 		return
 	}

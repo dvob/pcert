@@ -17,8 +17,8 @@ var (
 	defaultECDSAKeySize = 256
 )
 
-// KeyConfig specifies a key algorithm and a size
-type KeyConfig struct {
+// KeyOptions specifies a key algorithm and a size
+type KeyOptions struct {
 	Algorithm x509.PublicKeyAlgorithm
 	Size      int
 }
@@ -30,25 +30,25 @@ var PublicKeyAlgorithms = []x509.PublicKeyAlgorithm{
 	x509.Ed25519,
 }
 
-// GenerateKey returns a private and a public key based on the config.
-// If no PublicKeyAlgorithm is set in the config ECDSA is used. If no key size
-// is set in the config 256 bit is used for ECDSA and 2048 for RSA.
-func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) {
-	if config.Algorithm == x509.UnknownPublicKeyAlgorithm {
-		config.Algorithm = defaultAlgorithm
+// GenerateKey returns a private and a public key based on the options.
+// If no PublicKeyAlgorithm is set in the options ECDSA is used. If no key size
+// is set in the options 256 bit is used for ECDSA and 2048 for RSA.
+func GenerateKey(opts KeyOptions) (crypto.PrivateKey, crypto.PublicKey, error) {
+	if opts.Algorithm == x509.UnknownPublicKeyAlgorithm {
+		opts.Algorithm = defaultAlgorithm
 	}
 
-	if config.Size == 0 {
-		if config.Algorithm == x509.RSA {
-			config.Size = defaultRSAKeySize
-		} else if config.Algorithm == x509.ECDSA {
-			config.Size = defaultECDSAKeySize
+	if opts.Size == 0 {
+		if opts.Algorithm == x509.RSA {
+			opts.Size = defaultRSAKeySize
+		} else if opts.Algorithm == x509.ECDSA {
+			opts.Size = defaultECDSAKeySize
 		}
 	}
 
-	switch config.Algorithm {
+	switch opts.Algorithm {
 	case x509.RSA:
-		priv, err := rsa.GenerateKey(rand.Reader, config.Size)
+		priv, err := rsa.GenerateKey(rand.Reader, opts.Size)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -59,7 +59,7 @@ func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) 
 	case x509.ECDSA:
 		var curve elliptic.Curve
 
-		switch config.Size {
+		switch opts.Size {
 		case 224:
 			curve = elliptic.P224()
 		case 256:
@@ -82,7 +82,7 @@ func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) 
 		return ed25519.GenerateKey(rand.Reader)
 
 	default:
-		return nil, nil, fmt.Errorf("unknown key algorithm: %s", config.Algorithm)
+		return nil, nil, fmt.Errorf("unknown key algorithm: %s", opts.Algorithm)
 
 	}
 }
