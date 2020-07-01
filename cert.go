@@ -50,8 +50,9 @@ func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCer
 	return certPEM, keyPEM, nil
 }
 
-// Sign set some defaults on cert and signs it with signCert and signKey.
-// The following defaults are set if the values are not set explicitly yet:
+// Sign set some defaults on a certificate and signs it with the  signCert and
+// the signKey. The following defaults are set they are not set explicitly in the
+// certificate:
 //
 //   - SubjectKeyId is generated based on the publicKey
 //   - The AuthorityKeyId is set based on the SubjectKeyId of the signCert
