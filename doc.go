@@ -6,7 +6,7 @@ This package provides the following main functions:
   - Request: creates a CSR and a key
   - Sign: signs a certificate or a CSR with an existing certificate and key
 
-The results of the functions which return certificats, CSRs and keys are all
+The results of the functions which return certificates, CSRs and keys are all
 PEM encoded.
 
 All functions without special suffix refer to a certificates. Functions for CSR

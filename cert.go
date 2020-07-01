@@ -47,7 +47,7 @@ func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCer
 		}
 		return nil, nil, fmt.Errorf("private key for signing missing")
 	}
-	return certPEM, keyPEM, nil
+	return certPEM, keyPEM, err
 }
 
 // Sign set some defaults on a certificate and signs it with the  signCert and
