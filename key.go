@@ -32,7 +32,9 @@ var PublicKeyAlgorithms = []x509.PublicKeyAlgorithm{
 
 // GenerateKey returns a private and a public key based on the options.
 // If no PublicKeyAlgorithm is set in the options ECDSA is used. If no key size
-// is set in the options 256 bit is used for ECDSA and 2048 for RSA.
+// is set in the options 256 bit is used for ECDSA and 2048 bit for RSA.
+// For ECDSA the following sizes are valid: 224, 256, 384 and 521.
+// For the x509.Ed25519 algorithm the size in the KeyOptions is ignored.
 func GenerateKey(opts KeyOptions) (crypto.PrivateKey, crypto.PublicKey, error) {
 	if opts.Algorithm == x509.UnknownPublicKeyAlgorithm {
 		opts.Algorithm = defaultAlgorithm
@@ -68,6 +70,8 @@ func GenerateKey(opts KeyOptions) (crypto.PrivateKey, crypto.PublicKey, error) {
 			curve = elliptic.P384()
 		case 521:
 			curve = elliptic.P521()
+		default:
+			return nil, nil, fmt.Errorf("invalid size for ecdsa")
 		}
 
 		priv, err := ecdsa.GenerateKey(curve, rand.Reader)
@@ -79,7 +83,8 @@ func GenerateKey(opts KeyOptions) (crypto.PrivateKey, crypto.PublicKey, error) {
 		return priv, pub, nil
 
 	case x509.Ed25519:
-		return ed25519.GenerateKey(rand.Reader)
+		pub, priv, err := ed25519.GenerateKey(rand.Reader)
+		return priv, pub, err
 
 	default:
 		return nil, nil, fmt.Errorf("unknown key algorithm: %s", opts.Algorithm)
