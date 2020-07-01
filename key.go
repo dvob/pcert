@@ -11,6 +11,12 @@ import (
 	"fmt"
 )
 
+var (
+	defaultAlgorithm    = x509.ECDSA
+	defaultRSAKeySize   = 2048
+	defaultECDSAKeySize = 256
+)
+
 // KeyConfig specifies a key algorithm and a size
 type KeyConfig struct {
 	Algorithm x509.PublicKeyAlgorithm
@@ -29,14 +35,14 @@ var PublicKeyAlgorithms = []x509.PublicKeyAlgorithm{
 // is set in the config 256 bit is used for ECDSA and 2048 for RSA.
 func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) {
 	if config.Algorithm == x509.UnknownPublicKeyAlgorithm {
-		config.Algorithm = x509.ECDSA
+		config.Algorithm = defaultAlgorithm
 	}
 
 	if config.Size == 0 {
 		if config.Algorithm == x509.RSA {
-			config.Size = 2048
+			config.Size = defaultRSAKeySize
 		} else if config.Algorithm == x509.ECDSA {
-			config.Size = 256
+			config.Size = defaultECDSAKeySize
 		}
 	}
 
@@ -46,10 +52,13 @@ func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) 
 		if err != nil {
 			return nil, nil, err
 		}
+
 		pub := priv.Public()
 		return priv, pub, err
+
 	case x509.ECDSA:
 		var curve elliptic.Curve
+
 		switch config.Size {
 		case 224:
 			curve = elliptic.P224()
@@ -60,15 +69,20 @@ func GenerateKey(config KeyConfig) (crypto.PrivateKey, crypto.PublicKey, error) 
 		case 521:
 			curve = elliptic.P521()
 		}
+
 		priv, err := ecdsa.GenerateKey(curve, rand.Reader)
 		if err != nil {
 			return nil, nil, err
 		}
+
 		pub := priv.Public()
 		return priv, pub, nil
+
 	case x509.Ed25519:
 		return ed25519.GenerateKey(rand.Reader)
+
 	default:
 		return nil, nil, fmt.Errorf("unknown key algorithm: %s", config.Algorithm)
+
 	}
 }
