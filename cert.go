@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
 	"math/big"
 	"reflect"
 	"time"
@@ -35,13 +36,18 @@ func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCer
 		return
 	}
 
-	// If either signCert or signKey is missing we self sign the certificate
-	if signCert == nil || signKey == nil {
+	// If signCert and signKey are missing we self sign the certificate
+	if signCert == nil && signKey == nil {
 		certPEM, err = Sign(cert, pub, cert, priv)
-	} else {
+	} else if signCert != nil && signKey != nil {
 		certPEM, err = Sign(cert, pub, signCert, signKey)
+	} else {
+		if signCert == nil {
+			return nil, nil, fmt.Errorf("certificate for signing missing")
+		}
+		return nil, nil, fmt.Errorf("private key for signing missing")
 	}
-	return
+	return certPEM, keyPEM, nil
 }
 
 // Sign set some defaults on cert and signs it with signCert and signKey.
