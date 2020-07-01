@@ -27,6 +27,7 @@ func ExtKeyUsageToString(ku []x509.ExtKeyUsage) string {
 		for _, existingUsage := range ku {
 			if usage == existingUsage {
 				usages = append(usages, str)
+				break
 			}
 		}
 	}
