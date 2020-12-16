@@ -1,9 +1,9 @@
-# plaincert
-[![GoDoc](https://godoc.org/github.com/dsbrng25b/pcert?status.svg)](https://godoc.org/github.com/dsbrng25b/pcert)
+# pcert
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/dsbrng25b/pcert)](https://pkg.go.dev/github.com/dsbrng25b/pcert)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dsbrng25b/pcert)](https://goreportcard.com/report/github.com/dsbrng25b/pcert)
 [![Build](https://github.com/dsbrng25b/pcert/workflows/main/badge.svg?branch=master)](https://github.com/dsbrng25b/pcert/actions)
 
-**p**lain**cert** aims to ease the creation of x509 certificates and keys. It can be used as CLI tool or as Go library ([godoc](https://godoc.org/github.com/dsbrng25b/pcert)).  
+**p**lain**cert** aims to ease the creation of x509 certificates and keys. It can be used as CLI tool or as Go library ([pkg.go.dev](https://pkg.go.dev/github.com/dsbrng25b/pcert)).  
 
 ## Quick Start
 ```shell
