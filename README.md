@@ -7,11 +7,11 @@
 
 ## Quick Start
 ```shell
-# create CA
+# create CA (myca.crt and myca.key)
 pcert create myca --ca
 
 # create server certificate
-pcert create myapp.company.com withfrom myca \
+pcert create myapp.company.com --with myca \
 	--server \
 	--dns api.myapp.company.com \
 	--dns localhost \
