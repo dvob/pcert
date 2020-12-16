@@ -10,13 +10,13 @@ jobs:
     steps:
       - uses: actions/setup-go@v1
         with:
-          go-version: '1.14'
+          go-version: '1.15'
 
       - uses: actions/checkout@v2
 
       - name: Install Tools
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.27.0
+          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
 
       - name: Generate
         run: |
@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v1
         with:
-          go-version: '1.14'
+          go-version: '1.15'
 
       - uses: actions/checkout@v2
 
