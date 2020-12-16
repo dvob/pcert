@@ -48,7 +48,7 @@ func LoadCSR(f string) (*x509.CertificateRequest, error) {
 
 // Parse returns a *x509.Certificate from PEM encoded data.
 func Parse(pem []byte) (*x509.Certificate, error) {
-	der, err := parseType(certificateBlock, pem)
+	der, err := parsePEM(pem)
 
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func Parse(pem []byte) (*x509.Certificate, error) {
 
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
 func ParseKey(pem []byte) (key interface{}, err error) {
-	der, err := parseType(privateKeyBlock, pem)
+	der, err := parsePEM(pem)
 
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func ParseKey(pem []byte) (key interface{}, err error) {
 
 // ParseCSR returns a *x509.CertificateRequest from PEM encoded data.
 func ParseCSR(pem []byte) (*x509.CertificateRequest, error) {
-	der, err := parseType(certificateRequestBlock, pem)
+	der, err := parsePEM(pem)
 
 	if err != nil {
 		return nil, err
@@ -79,15 +79,11 @@ func ParseCSR(pem []byte) (*x509.CertificateRequest, error) {
 	return x509.ParseCertificateRequest(der)
 }
 
-func parseType(blockType string, bytes []byte) ([]byte, error) {
+func parsePEM(bytes []byte) ([]byte, error) {
 	block, _ := pem.Decode(bytes)
 
 	if block == nil {
 		return nil, fmt.Errorf("no pem data found")
-	}
-
-	if block.Type != blockType {
-		return nil, fmt.Errorf("pem block is not of type '%s'", blockType)
 	}
 
 	return block.Bytes, nil
