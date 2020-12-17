@@ -17,7 +17,7 @@ or LoadCSR are for keys resp. CSRs.
     import (
             "io/ioutil"
 
-            "github.com/dsbrng25b/pcert"
+            "github.com/dvob/pcert"
     )
 
     func main() {

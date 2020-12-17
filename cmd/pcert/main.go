@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	cmdutil "github.com/dsbrng25b/pcert/cmd"
+	cmdutil "github.com/dvob/pcert/cmd"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dsbrng25b/pcert"
+	"github.com/dvob/pcert"
 )
 
 func runCmd(args []string, env map[string]string) error {

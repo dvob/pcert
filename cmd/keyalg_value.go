@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/dsbrng25b/pcert"
+	"github.com/dvob/pcert"
 	"github.com/spf13/cobra"
 )
 

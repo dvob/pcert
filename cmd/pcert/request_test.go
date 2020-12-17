@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dsbrng25b/pcert"
+	"github.com/dvob/pcert"
 )
 
 func runRequestAndLoad(name string, args []string, env map[string]string) (*x509.CertificateRequest, error) {

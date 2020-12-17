@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dsbrng25b/pcert"
+	"github.com/dvob/pcert"
 )
 
 func Test_extKeyUsageValueSet(t *testing.T) {

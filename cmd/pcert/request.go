@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/dsbrng25b/pcert"
-	cmdutil "github.com/dsbrng25b/pcert/cmd"
+	"github.com/dvob/pcert"
+	cmdutil "github.com/dvob/pcert/cmd"
 	"github.com/spf13/cobra"
 )
 

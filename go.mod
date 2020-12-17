@@ -1,4 +1,4 @@
-module github.com/dsbrng25b/pcert
+module github.com/dvob/pcert
 
 go 1.14
 
