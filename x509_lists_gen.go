@@ -79,7 +79,7 @@ func main() {
 	extUsageStringMapping := generateStringMapping("ExtKeyUsage", extUsage)
 	signAlgMapping := generateSignatureAlgorithmMapping(signAlgs)
 
-	var output = &bytes.Buffer{}
+	output := &bytes.Buffer{}
 	err = packageTemplate.Execute(output, struct {
 		KeyUsage    map[string]string
 		ExtKeyUsage map[string]string
@@ -98,7 +98,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile(outputFile, formattedOutput, 0644)
+	err = ioutil.WriteFile(outputFile, formattedOutput, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}

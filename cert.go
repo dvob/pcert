@@ -18,7 +18,7 @@ const (
 )
 
 // Create creates a x509.Certificate and a key with the default key options. See CreateWithKeyOptions for more details.
-func Create(cert *x509.Certificate, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+func Create(cert, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
 	return CreateWithKeyOptions(cert, KeyOptions{}, signCert, signKey)
 }
 
@@ -99,13 +99,13 @@ func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certific
 
 // Request creates a CSR and a key. The key is created with the default key
 // options. See RequestWithKeyOptions for more details.
-func Request(csr *x509.CertificateRequest) (csrPEM []byte, keyPEM []byte, err error) {
+func Request(csr *x509.CertificateRequest) (csrPEM, keyPEM []byte, err error) {
 	return RequestWithKeyOptions(csr, KeyOptions{})
 }
 
 // RequestWithKeyOptions creates a CSR and a key based on key options.  The key is
 // created with the default key options.
-func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM []byte, keyPEM []byte, err error) {
+func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM, keyPEM []byte, err error) {
 	priv, _, err := GenerateKey(keyOptions)
 	if err != nil {
 		return
@@ -127,7 +127,7 @@ func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) 
 }
 
 // SignCSR applies the settings from csr and return the signed certificate
-func SignCSR(csr *x509.CertificateRequest, cert *x509.Certificate, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
+func SignCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
 	// TODO: settings from cert should take precedence
 	applyCSR(csr, cert)
 

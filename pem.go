@@ -16,7 +16,6 @@ const (
 // Load reads a *x509.Certificate from a PEM encoded file.
 func Load(f string) (*x509.Certificate, error) {
 	pem, err := ioutil.ReadFile(f)
-
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +26,6 @@ func Load(f string) (*x509.Certificate, error) {
 // LoadKey reads a *crypto.PrivateKey from a PEM encoded file.
 func LoadKey(f string) (interface{}, error) {
 	pem, err := ioutil.ReadFile(f)
-
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +36,6 @@ func LoadKey(f string) (interface{}, error) {
 // LoadCSR reads a *x509.CertificateRequest from a PEM encoded file.
 func LoadCSR(f string) (*x509.CertificateRequest, error) {
 	pem, err := ioutil.ReadFile(f)
-
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +46,6 @@ func LoadCSR(f string) (*x509.CertificateRequest, error) {
 // Parse returns a *x509.Certificate from PEM encoded data.
 func Parse(pem []byte) (*x509.Certificate, error) {
 	der, err := parsePEM(pem)
-
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +56,6 @@ func Parse(pem []byte) (*x509.Certificate, error) {
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
 func ParseKey(pem []byte) (key interface{}, err error) {
 	der, err := parsePEM(pem)
-
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +66,6 @@ func ParseKey(pem []byte) (key interface{}, err error) {
 // ParseCSR returns a *x509.CertificateRequest from PEM encoded data.
 func ParseCSR(pem []byte) (*x509.CertificateRequest, error) {
 	der, err := parsePEM(pem)
-
 	if err != nil {
 		return nil, err
 	}

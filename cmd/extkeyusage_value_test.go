@@ -24,7 +24,6 @@ func Test_extKeyUsageValueSet(t *testing.T) {
 		t.Errorf("crl sign not set: got: %v, want: %s", pcert.ExtKeyUsageToString(usage), pcert.ExtKeyUsageToString(want))
 		return
 	}
-
 }
 
 func Test_extKeyUsageValueSet_multiple(t *testing.T) {
@@ -43,7 +42,6 @@ func Test_extKeyUsageValueSet_multiple(t *testing.T) {
 		t.Errorf("crl sign not set: got: %v, want: %s", pcert.ExtKeyUsageToString(usage), pcert.ExtKeyUsageToString(want))
 		return
 	}
-
 }
 
 func Test_extKeyUsageValueSet_multiple_separate(t *testing.T) {
@@ -68,5 +66,4 @@ func Test_extKeyUsageValueSet_multiple_separate(t *testing.T) {
 		t.Errorf("crl sign not set: got: %v, want: %s", pcert.ExtKeyUsageToString(usage), pcert.ExtKeyUsageToString(want))
 		return
 	}
-
 }

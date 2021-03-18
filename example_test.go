@@ -14,16 +14,15 @@ func ExampleCreate_selfSigned() {
 
 	// self-signed
 	certPEM, keyPEM, err := Create(cert, nil, nil)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("server.crt", certPEM, 0644)
+	err = ioutil.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile("server.crt", keyPEM, 0600)
+	err = ioutil.WriteFile("server.crt", keyPEM, 0o600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,11 +49,11 @@ func ExampleCreate_signed() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("server.crt", certPEM, 0644)
+	err = ioutil.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile("server.crt", keyPEM, 0600)
+	err = ioutil.WriteFile("server.crt", keyPEM, 0o600)
 	if err != nil {
 		log.Fatal(err)
 	}

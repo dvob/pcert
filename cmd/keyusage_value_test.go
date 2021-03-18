@@ -20,7 +20,6 @@ func Test_keyUsageValueSet(t *testing.T) {
 		t.Errorf("crl sign not set: got: %d, want: %d", value, x509.KeyUsageCRLSign)
 		return
 	}
-
 }
 
 func Test_keyUsageValueSet_multiple(t *testing.T) {
@@ -39,7 +38,6 @@ func Test_keyUsageValueSet_multiple(t *testing.T) {
 		t.Errorf("crl sign not set: got: %d, want: %d", usage, want)
 		return
 	}
-
 }
 
 func Test_keyUsageValueSet_multiple_separate(t *testing.T) {
@@ -63,5 +61,4 @@ func Test_keyUsageValueSet_multiple_separate(t *testing.T) {
 		t.Errorf("crl sign not set: got: %d, want: %d", usage, want)
 		return
 	}
-
 }

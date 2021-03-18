@@ -40,11 +40,11 @@ func newRequestCmd() *cobra.Command {
 				return err
 			}
 
-			err = ioutil.WriteFile(key.path, keyPEM, 0600)
+			err = ioutil.WriteFile(key.path, keyPEM, 0o600)
 			if err != nil {
 				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = ioutil.WriteFile(csrFile, csrPEM, 0640)
+			err = ioutil.WriteFile(csrFile, csrPEM, 0o640)
 			if err != nil {
 				return fmt.Errorf("failed to write CSR '%s': %w", csrFile, err)
 			}

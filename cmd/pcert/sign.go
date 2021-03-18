@@ -49,7 +49,7 @@ func newSignCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = ioutil.WriteFile(cert.path, certPEM, 0640)
+			err = ioutil.WriteFile(cert.path, certPEM, 0o640)
 			return err
 		},
 	}

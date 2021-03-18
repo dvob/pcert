@@ -79,7 +79,6 @@ func Test_create_subject_multiple(t *testing.T) {
 		"--subject",
 		"OU=Group 1/OU=Group 2",
 	}, nil)
-
 	if err != nil {
 		t.Error(err)
 		return
@@ -107,7 +106,6 @@ func Test_create_subject_combined_with_environment(t *testing.T) {
 		"--subject",
 		"OU=Group 1/OU=Group 2",
 	}, env)
-
 	if err != nil {
 		t.Error(err)
 		return
