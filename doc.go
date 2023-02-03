@@ -14,21 +14,21 @@ and Key use an appropriate suffix.
 For example the function Load loads a certificate from a file, whereas LoadKey
 or LoadCSR are for keys resp. CSRs.
 
-    import (
-            "io/ioutil"
+	    import (
+	            "io/ioutil"
 
-            "github.com/dvob/pcert"
-    )
+	            "github.com/dvob/pcert"
+	    )
 
-    func main() {
-            cert := pcert.NewServerCertificate("www.example.local")
+	    func main() {
+	            cert := pcert.NewServerCertificate("www.example.local")
 
-			// self-signed
-            certPEM, keyPEM, _ := pcert.Create(cert, nil, nil)
+				// self-signed
+	            certPEM, keyPEM, _ := pcert.Create(cert, nil, nil)
 
-            _ = ioutil.WriteFile("server.crt", certPEM, 0644)
-            _ = ioutil.WriteFile("server.key", keyPEM, 0600)
+	            _ = ioutil.WriteFile("server.crt", certPEM, 0644)
+	            _ = ioutil.WriteFile("server.key", keyPEM, 0600)
 
-    }
+	    }
 */
 package pcert
