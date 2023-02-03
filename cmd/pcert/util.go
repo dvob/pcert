@@ -72,7 +72,7 @@ func (k *key) bindFlags(cmd *cobra.Command) {
 }
 
 type signPair struct {
-	key       interface{}
+	key       any
 	keyFile   string
 	cert      *x509.Certificate
 	certFile  string

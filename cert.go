@@ -61,7 +61,7 @@ func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCer
 //   - SerialNumber is set to a randomly generated serial number
 //
 // The created certificate is returned PEM encoded.
-func Sign(cert *x509.Certificate, publicKey interface{}, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
+func Sign(cert *x509.Certificate, publicKey any, signCert *x509.Certificate, signKey any) (certPEM []byte, err error) {
 	if cert.SubjectKeyId == nil {
 		subjectKeyID, err := getSubjectKeyID(publicKey)
 		if err != nil {
@@ -127,7 +127,7 @@ func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) 
 }
 
 // SignCSR applies the settings from csr and return the signed certificate
-func SignCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey interface{}) (certPEM []byte, err error) {
+func SignCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey any) (certPEM []byte, err error) {
 	// TODO: settings from cert should take precedence
 	applyCSR(csr, cert)
 

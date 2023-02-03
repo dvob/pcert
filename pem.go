@@ -24,7 +24,7 @@ func Load(f string) (*x509.Certificate, error) {
 }
 
 // LoadKey reads a *crypto.PrivateKey from a PEM encoded file.
-func LoadKey(f string) (interface{}, error) {
+func LoadKey(f string) (any, error) {
 	pem, err := ioutil.ReadFile(f)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func Parse(pem []byte) (*x509.Certificate, error) {
 }
 
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
-func ParseKey(pem []byte) (key interface{}, err error) {
+func ParseKey(pem []byte) (key any, err error) {
 	der, err := parsePEM(pem)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func Encode(derBytes []byte) []byte {
 }
 
 // EncodeKey encodes a *crypto.PrivateKey into PEM encoding by using x509.MarshalPKCS8PrivateKey
-func EncodeKey(priv interface{}) ([]byte, error) {
+func EncodeKey(priv any) ([]byte, error) {
 	pkcs8der, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
 		return nil, err
