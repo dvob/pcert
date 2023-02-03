@@ -227,11 +227,11 @@ func Test_create_output_parameter(t *testing.T) {
 
 	_, err = pcert.Load(certFile)
 	if err != nil {
-		t.Errorf("could not load certificate: %w", err)
+		t.Errorf("could not load certificate: %s", err)
 	}
 
 	_, err = pcert.LoadKey(keyFile)
 	if err != nil {
-		t.Errorf("could not load key: %w", err)
+		t.Errorf("could not load key: %s", err)
 	}
 }

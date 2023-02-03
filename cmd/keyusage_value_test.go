@@ -12,7 +12,7 @@ func Test_keyUsageValueSet(t *testing.T) {
 
 	err := value.Set("CRLSign")
 	if err != nil {
-		t.Errorf("failed to set CRLSign: %w", err)
+		t.Errorf("failed to set CRLSign: %s", err)
 		return
 	}
 
@@ -29,7 +29,7 @@ func Test_keyUsageValueSet_multiple(t *testing.T) {
 
 	err := value.Set("CRLSign,CertSign")
 	if err != nil {
-		t.Errorf("failed to set CRLSign,CertSign: %w", err)
+		t.Errorf("failed to set CRLSign,CertSign: %s", err)
 		return
 	}
 
@@ -47,12 +47,12 @@ func Test_keyUsageValueSet_multiple_separate(t *testing.T) {
 
 	err := value.Set("CRLSign")
 	if err != nil {
-		t.Errorf("failed to set CRLSign: %w", err)
+		t.Errorf("failed to set CRLSign: %s", err)
 		return
 	}
 	err = value.Set("CertSign")
 	if err != nil {
-		t.Errorf("failed to set CertSign: %w", err)
+		t.Errorf("failed to set CertSign: %s", err)
 		return
 	}
 

@@ -15,7 +15,7 @@ func Test_extKeyUsageValueSet(t *testing.T) {
 
 	err := value.Set("ClientAuth")
 	if err != nil {
-		t.Errorf("failed to set ext key usage: %w", err)
+		t.Errorf("failed to set ext key usage: %s", err)
 		return
 	}
 
@@ -33,7 +33,7 @@ func Test_extKeyUsageValueSet_multiple(t *testing.T) {
 
 	err := value.Set("ClientAuth,ServerAuth")
 	if err != nil {
-		t.Errorf("failed to set ext key usage: %w", err)
+		t.Errorf("failed to set ext key usage: %s", err)
 		return
 	}
 
@@ -51,13 +51,13 @@ func Test_extKeyUsageValueSet_multiple_separate(t *testing.T) {
 
 	err := value.Set("ClientAuth")
 	if err != nil {
-		t.Errorf("failed to set ext key usage: %w", err)
+		t.Errorf("failed to set ext key usage: %s", err)
 		return
 	}
 
 	err = value.Set("ServerAuth")
 	if err != nil {
-		t.Errorf("failed to set ext key usage: %w", err)
+		t.Errorf("failed to set ext key usage: %s", err)
 		return
 	}
 
