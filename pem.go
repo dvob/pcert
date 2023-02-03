@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 
 // Load reads a *x509.Certificate from a PEM encoded file.
 func Load(f string) (*x509.Certificate, error) {
-	pem, err := ioutil.ReadFile(f)
+	pem, err := os.ReadFile(f)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func Load(f string) (*x509.Certificate, error) {
 
 // LoadKey reads a *crypto.PrivateKey from a PEM encoded file.
 func LoadKey(f string) (any, error) {
-	pem, err := ioutil.ReadFile(f)
+	pem, err := os.ReadFile(f)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func LoadKey(f string) (any, error) {
 
 // LoadCSR reads a *x509.CertificateRequest from a PEM encoded file.
 func LoadCSR(f string) (*x509.CertificateRequest, error) {
-	pem, err := ioutil.ReadFile(f)
+	pem, err := os.ReadFile(f)
 	if err != nil {
 		return nil, err
 	}

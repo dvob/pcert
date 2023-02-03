@@ -3,7 +3,6 @@ package pcert
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -18,11 +17,11 @@ func ExampleCreate_selfSigned() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("server.crt", certPEM, 0o644)
+	err = os.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile("server.crt", keyPEM, 0o600)
+	err = os.WriteFile("server.crt", keyPEM, 0o600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,11 +48,11 @@ func ExampleCreate_signed() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("server.crt", certPEM, 0o644)
+	err = os.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile("server.crt", keyPEM, 0o600)
+	err = os.WriteFile("server.crt", keyPEM, 0o600)
 	if err != nil {
 		log.Fatal(err)
 	}

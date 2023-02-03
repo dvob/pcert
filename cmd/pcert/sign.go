@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/x509"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/dvob/pcert"
@@ -49,7 +49,7 @@ func newSignCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = ioutil.WriteFile(cert.path, certPEM, 0o640)
+			err = os.WriteFile(cert.path, certPEM, 0o640)
 			return err
 		},
 	}

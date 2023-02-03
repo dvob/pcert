@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/dvob/pcert"
 	"github.com/spf13/cobra"
@@ -53,11 +53,11 @@ the key (<name>.key).`,
 				return err
 			}
 
-			err = ioutil.WriteFile(key.path, keyPEM, 0o600)
+			err = os.WriteFile(key.path, keyPEM, 0o600)
 			if err != nil {
 				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = ioutil.WriteFile(cert.path, certPEM, 0o640)
+			err = os.WriteFile(cert.path, certPEM, 0o640)
 			if err != nil {
 				return fmt.Errorf("failed to write certificate '%s': %w", key.path, err)
 			}

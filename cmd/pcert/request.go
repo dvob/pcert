@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/dvob/pcert"
 	cmdutil "github.com/dvob/pcert/cmd"
@@ -40,11 +40,11 @@ func newRequestCmd() *cobra.Command {
 				return err
 			}
 
-			err = ioutil.WriteFile(key.path, keyPEM, 0o600)
+			err = os.WriteFile(key.path, keyPEM, 0o600)
 			if err != nil {
 				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = ioutil.WriteFile(csrFile, csrPEM, 0o640)
+			err = os.WriteFile(csrFile, csrPEM, 0o640)
 			if err != nil {
 				return fmt.Errorf("failed to write CSR '%s': %w", csrFile, err)
 			}
