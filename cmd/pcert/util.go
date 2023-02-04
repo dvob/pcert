@@ -19,9 +19,9 @@ type cert struct {
 }
 
 func (c *cert) bindFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&c.ca, "ca", false, "Create a CA certificate")
-	cmd.Flags().BoolVar(&c.server, "server", false, "Create a server certificate")
-	cmd.Flags().BoolVar(&c.client, "client", false, "Create a client certificate")
+	cmd.Flags().BoolVar(&c.ca, "ca", false, "Set settings typical for a CA certificate.")
+	cmd.Flags().BoolVar(&c.server, "server", false, "Set settings typical for a server certificate.")
+	cmd.Flags().BoolVar(&c.client, "client", false, "Set settings typical for a client certificate.")
 	cmd.Flags().Var(newDurationValue(&c.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
 	cmd.Flags().StringVar(&c.path, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
 
