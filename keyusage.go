@@ -10,6 +10,11 @@ import (
 
 // KeyUsageToString returns a string representation of a x509.KeyUsage bitmask
 func KeyUsageToString(bitmask x509.KeyUsage) string {
+	return strings.Join(KeyUsageToStringSlice(bitmask), ", ")
+}
+
+// KeyUsageToStringSlice returns a slice with string representations of the x509.KeyUsage bitmask
+func KeyUsageToStringSlice(bitmask x509.KeyUsage) []string {
 	usages := []string{}
 	for str, usage := range KeyUsages {
 		if usage&bitmask == usage {
@@ -17,7 +22,7 @@ func KeyUsageToString(bitmask x509.KeyUsage) string {
 		}
 	}
 	sort.Strings(usages)
-	return strings.Join(usages, ",")
+	return usages
 }
 
 // ExtKeyUsageToString returns a string representation of a []x509.ExtKeyUsage slice
