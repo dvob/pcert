@@ -11,13 +11,16 @@ func parseDuration(str string) (time.Duration, error) {
 		return 0, fmt.Errorf("failed to parse duration: empty string")
 	}
 
-	multiplier := time.Hour * 24
+	var multiplier time.Duration
 	suffix := str[len(str)-1]
-	if suffix == 'd' {
-		str = str[:len(str)-1]
-	} else if suffix == 'y' {
+	str = str[:len(str)-1]
+	switch suffix {
+	case 'd':
+		multiplier = time.Hour * 24
+	case 'y':
 		multiplier = time.Hour * 24 * 365
-		str = str[:len(str)-1]
+	default:
+		return 0, fmt.Errorf("invalid duration. valid suffixes are 'd' for days and 'y' for years")
 	}
 	value, err := strconv.Atoi(str)
 	if err != nil {

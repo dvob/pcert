@@ -9,33 +9,33 @@ import (
 
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:       "list <option>",
-		Short:     "List available settings for options.",
-		Long:      "List available settings for the following options: key-usage, ext-key-usage, sign-alg, key-alg",
-		ValidArgs: []string{"key-usage", "ext-key-usage", "sign-alg", "key-alg"},
-		Args:      cobra.ExactArgs(1),
+		Use:   "list",
+		Short: "List available settings for options.",
+		Long:  "List available settings for the following options: key-usage, ext-key-usage, sign-alg, key-alg",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			t := args[0]
-			switch t {
-			case "key-usage":
-				for u := range pcert.KeyUsages {
-					fmt.Println(u)
-				}
-			case "ext-key-usage":
-				for u := range pcert.ExtKeyUsages {
-					fmt.Println(u)
-				}
-			case "sign-alg":
-				for s := range pcert.SignatureAlgorithms {
-					fmt.Println(s)
-				}
-			case "key-alg":
-				for k := range pcert.PublicKeyAlgorithms {
-					fmt.Println(k)
-				}
-			default:
-				return fmt.Errorf("unknown type: %s", t)
+			fmt.Println("Key Usage (--key-usage):")
+			for usage := range pcert.KeyUsages {
+				fmt.Printf("  %s\n", usage)
 			}
+			fmt.Println()
+
+			fmt.Println("Extended Key Usage (--ext-key-usage):")
+			for usage := range pcert.ExtKeyUsages {
+				fmt.Printf("  %s\n", usage)
+			}
+			fmt.Println()
+
+			fmt.Println("Signature Algorithm (--sign-alg):")
+			for _, alg := range pcert.SignatureAlgorithms {
+				fmt.Printf("  %s\n", alg)
+			}
+			fmt.Println()
+
+			fmt.Println("Public Key Algorithm (--key-alg):")
+			for _, alg := range pcert.PublicKeyAlgorithms {
+				fmt.Printf("  %s\n", alg)
+			}
+
 			return nil
 		},
 	}
