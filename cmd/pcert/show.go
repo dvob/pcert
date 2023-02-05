@@ -19,9 +19,7 @@ import (
 )
 
 func newShowCmd() *cobra.Command {
-	var (
-		format string
-	)
+	var format string
 	cmd := &cobra.Command{
 		Use:   "show [FILE]",
 		Short: "Reads PEM encoded certificates and show information.",
@@ -30,7 +28,12 @@ validity used algorithms etc. If no file is provided PEM certificate is read
 from STDIN.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			file := args[0]
+			var file string
+			if len(args) == 0 {
+				file = "-"
+			} else {
+				file = args[0]
+			}
 
 			var input io.Reader
 
@@ -49,9 +52,13 @@ from STDIN.`,
 				return err
 			}
 
-			cert, err := pcert.Parse(inputBytes)
+			certs, err := pcert.ParseAll(inputBytes)
 			if err != nil {
 				return err
+			}
+
+			if len(certs) == 0 {
+				return fmt.Errorf("no PEM encoded certificates found in input")
 			}
 
 			var printer func(cert *x509.Certificate)
@@ -64,7 +71,9 @@ from STDIN.`,
 				printer = printPEM
 			}
 
-			printer(cert)
+			for _, cert := range certs {
+				printer(cert)
+			}
 			return nil
 		},
 	}

@@ -53,6 +53,31 @@ func Parse(pem []byte) (*x509.Certificate, error) {
 	return x509.ParseCertificate(der)
 }
 
+// ParseAll returns a list of x509.Certificates from a list of concatenated PEM
+// encoded certificates.
+func ParseAll(data []byte) ([]*x509.Certificate, error) {
+	var (
+		certs []*x509.Certificate
+		block *pem.Block
+	)
+	for {
+		block, data = pem.Decode(data)
+		if block == nil {
+			break
+		}
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		certs = append(certs, cert)
+	}
+	return certs, nil
+}
+
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
 func ParseKey(pem []byte) (key any, err error) {
 	der, err := parsePEM(pem)
