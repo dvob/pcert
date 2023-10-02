@@ -10,7 +10,7 @@ import (
 
 // KeyUsageToString returns a string representation of a x509.KeyUsage bitmask
 func KeyUsageToString(bitmask x509.KeyUsage) string {
-	return strings.Join(KeyUsageToStringSlice(bitmask), ", ")
+	return strings.Join(KeyUsageToStringSlice(bitmask), ",")
 }
 
 // KeyUsageToStringSlice returns a slice with string representations of the x509.KeyUsage bitmask

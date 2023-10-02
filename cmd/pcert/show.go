@@ -116,7 +116,7 @@ func printText(c *x509.Certificate) {
 	if c.BasicConstraintsValid {
 		fmt.Fprintf(sb, "basic constraints: CA:%t", c.IsCA)
 		if c.MaxPathLen > 0 || (c.MaxPathLen == 0 && c.MaxPathLenZero) {
-			fmt.Fprintf(sb, "pathLen:%d\n", c.MaxPathLen)
+			fmt.Fprintf(sb, " pathLen:%d\n", c.MaxPathLen)
 		} else {
 			fmt.Fprintln(sb)
 		}
