@@ -11,6 +11,7 @@ const (
 	certificateBlock        = "CERTIFICATE"
 	certificateRequestBlock = "CERTIFICATE REQUEST"
 	privateKeyBlock         = "PRIVATE KEY"
+	ecPrivateKeyBlock       = "EC PRIVATE KEY"
 )
 
 // Load reads a *x509.Certificate from a PEM encoded file.
@@ -45,12 +46,12 @@ func LoadCSR(f string) (*x509.CertificateRequest, error) {
 
 // Parse returns a *x509.Certificate from PEM encoded data.
 func Parse(pem []byte) (*x509.Certificate, error) {
-	der, err := parsePEM(pem)
+	block, err := parsePEM(pem)
 	if err != nil {
 		return nil, err
 	}
 
-	return x509.ParseCertificate(der)
+	return x509.ParseCertificate(block.Bytes)
 }
 
 // ParseAll returns a list of x509.Certificates from a list of concatenated PEM
@@ -80,32 +81,36 @@ func ParseAll(data []byte) ([]*x509.Certificate, error) {
 
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
 func ParseKey(pem []byte) (key any, err error) {
-	der, err := parsePEM(pem)
+	block, err := parsePEM(pem)
 	if err != nil {
 		return nil, err
 	}
 
-	return x509.ParsePKCS8PrivateKey(der)
+	if block.Type == ecPrivateKeyBlock {
+		return x509.ParseECPrivateKey(block.Bytes)
+	}
+
+	return x509.ParsePKCS8PrivateKey(block.Bytes)
 }
 
 // ParseCSR returns a *x509.CertificateRequest from PEM encoded data.
 func ParseCSR(pem []byte) (*x509.CertificateRequest, error) {
-	der, err := parsePEM(pem)
+	block, err := parsePEM(pem)
 	if err != nil {
 		return nil, err
 	}
 
-	return x509.ParseCertificateRequest(der)
+	return x509.ParseCertificateRequest(block.Bytes)
 }
 
-func parsePEM(bytes []byte) ([]byte, error) {
+func parsePEM(bytes []byte) (*pem.Block, error) {
 	block, _ := pem.Decode(bytes)
 
 	if block == nil {
 		return nil, fmt.Errorf("no pem data found")
 	}
 
-	return block.Bytes, nil
+	return block, nil
 }
 
 // Encode encodes DER encoded certificate into PEM encoding
