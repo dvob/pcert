@@ -1,97 +1,92 @@
 package main
 
 import (
-	"crypto/x509"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/dvob/pcert"
 	"github.com/spf13/cobra"
 )
 
+type signOptions struct {
+	CSR string
+
+	Cert               string
+	CertificateOptions pcert.CertificateOptions
+	Profiles           []string
+
+	SignCert string
+	SignKey  string
+}
+
 func newSignCmd() *cobra.Command {
 	var (
-		profiles []string
-
-		csrLocation string
-
-		certOpts     pcert.CertificateOptions
-		certLocation string
-
 		defaultSignCertLocation = "ca.crt"
-		signCertLocation        = defaultSignCertLocation
-		signKeyLocation         string
+		opts                    = &signOptions{
+			SignCert: defaultSignCertLocation,
+		}
 	)
-	cmd := &cobra.Command{
-		Use:   "sign INPUT-CSR OUTPUT-CERTIFICATE",
-		Short: "Create a certificate based on a CSR",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			csrLocation = args[0]
-			certLocation = args[1]
 
-			if signKeyLocation == "" && isFile(signCertLocation) {
-				signKeyLocation = getKeyRelativeToFile(signCertLocation)
+	cmd := &cobra.Command{
+		Use:   "sign [INPUT-CSR] [OUTPUT-CERTIFICATE]",
+		Short: "Create a certificate based on a CSR",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				opts.CSR = args[0]
+			}
+			if len(args) > 1 {
+				opts.Cert = args[1]
 			}
 
-			var (
-				stdin    []byte
-				err      error
-				csr      *x509.CertificateRequest
-				signCert *x509.Certificate
-				signKey  any
-			)
+			if opts.SignKey == "" && isFile(opts.SignCert) {
+				opts.SignKey = getKeyRelativeToFile(opts.SignCert)
+			}
 
-			if !isFile(csrLocation) || !isFile(signCertLocation) || !isFile(signKeyLocation) {
-				stdin, err = io.ReadAll(cmd.InOrStdin())
-				if err != nil {
-					return err
-				}
+			stdin := &stdinKeeper{
+				stdin: cmd.InOrStdin(),
 			}
 
 			// CSR
-			if isFile(csrLocation) {
-				csr, err = pcert.LoadCSR(csrLocation)
-				if err != nil {
-					return err
-				}
-			} else {
-				csr, err = pcert.ParseCSR(stdin)
-				if err != nil {
-					return err
-				}
+			data, err := readStdinOrFile(opts.CSR, stdin)
+			if err != nil {
+				return err
 			}
 
-			// sign cert
-			if isFile(signCertLocation) {
-				signCert, err = pcert.Load(signCertLocation)
-				if os.IsNotExist(err) && signCertLocation == defaultSignCertLocation {
-					return fmt.Errorf("sign cert '%s' does not exist. set --sign-cert accordingly.", signCertLocation)
-				} else {
-					return err
-				}
-			} else {
-				signCert, err = pcert.Parse(stdin)
-				if err != nil {
-					return err
-				}
+			csr, err := pcert.ParseCSR(data)
+			if err != nil {
+				return err
 			}
 
-			// sign key
-			if isFile(signKeyLocation) {
-				signKey, err = pcert.LoadKey(signKeyLocation)
-				if err != nil {
-					return err
-				}
-			} else {
-				signKey, err = pcert.ParseKey(stdin)
-				if err != nil {
-					return err
-				}
+			// SignCert
+			data, err = readStdinOrFile(opts.SignCert, stdin)
+			if os.IsNotExist(err) && opts.SignCert == defaultSignCertLocation {
+				return fmt.Errorf("sign cert '%s' does not exist. set --sign-cert accordingly.", opts.SignCert)
+			} else if err != nil {
+				return err
 			}
 
-			cert := pcert.NewCertificate(&certOpts)
+			signCert, err := pcert.Parse(data)
+			if err != nil {
+				return err
+			}
+
+			// SignKey
+			data, err = readStdinOrFile(opts.SignKey, stdin)
+			if err != nil {
+				return err
+			}
+
+			signKey, err := pcert.ParseKey(data)
+			if err != nil {
+				return err
+			}
+
+			// create new certificate
+			cert := pcert.NewCertificate(&opts.CertificateOptions)
+			err = setProfiles(opts.Profiles, cert)
+			if err != nil {
+				return err
+			}
 
 			certDER, err := pcert.CreateCertificateWithCSR(csr, cert, signCert, signKey)
 			if err != nil {
@@ -100,28 +95,21 @@ func newSignCmd() *cobra.Command {
 
 			certPEM := pcert.Encode(certDER)
 
-			if isFile(certLocation) {
-				err := os.WriteFile(certLocation, certPEM, 0640)
-				if err != nil {
-					return err
-				}
-			} else {
-				_, err := cmd.OutOrStdout().Write(certPEM)
-				if err != nil {
-					return err
-				}
+			err = writeStdoutOrFile(opts.Cert, certPEM, 0644, cmd.OutOrStdout())
+			if err != nil {
+				return err
 			}
 
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&signCertLocation, "sign-cert", "s", signCertLocation, "Certificate used to sign. If not specified a self-signed certificate is created")
-	cmd.Flags().StringVar(&signKeyLocation, "sign-key", signKeyLocation, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
+	cmd.Flags().StringVarP(&opts.SignCert, "sign-cert", "s", opts.SignCert, "Certificate used to sign. If not specified a self-signed certificate is created")
+	cmd.Flags().StringVar(&opts.SignKey, "sign-key", opts.SignKey, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
 
-	cmd.Flags().StringSliceVar(&profiles, "profile", profiles, "profile to set on the certificate (server, client, ca)")
+	cmd.Flags().StringSliceVar(&opts.Profiles, "profile", opts.Profiles, "profile to set on the certificate (server, client, ca)")
 
-	registerCertFlags(cmd, &certOpts)
+	registerCertFlags(cmd, &opts.CertificateOptions)
 
 	return cmd
 }

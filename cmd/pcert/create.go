@@ -3,30 +3,43 @@ package main
 import (
 	"crypto/rand"
 	"crypto/x509"
-	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/dvob/pcert"
 	"github.com/spf13/cobra"
-	"log/slog"
 )
 
-type createCommand struct {
-	Out io.Writer
-	In  io.Reader
+type createOptions struct {
+	// Cert is the location where the certificate will be written to. A
+	// filepath or - for stdin. If empty it defaults to stdin.
+	Cert string
+	// Key is the location where the key will be written to. If empty and
+	// Cert is a filepath the key will be written alongside the certificate
+	// file. For example if the certificate is named tls.crt the key is
+	// stored under tls.key.
+	Key string
 
-	CertificateOutputLocation string
-	KeyOutputLocation         string
+	// SignCert is the location of the certificate to sign the new
+	// certificate. Its either a filepath or - to read it from stdin. If
+	// SignCert and SignKey are not set a self-signed certificate is
+	// created.
+	SignCert string
+	// SignKey is the location of the key used to sign the certificate. Its
+	// either a filepath or - to read the key from stdin.
+	// If SignCert is a filepath and SignKey is not set, by defaults the
+	// key is searchd alongside the certificate.
+	SignKey string
 
-	SignCertificateLocation string
-	SignKeyLocation         string
+	// Profiles are special certificate settings to set. E.g. client,
+	// server or CA.
+	Profiles []string
 
-	Profiles           []string
+	// CertificateOptions certificate settings.
 	CertificateOptions pcert.CertificateOptions
-	KeyOptions         pcert.KeyOptions
+
+	// KeyOptions are the key settings.
+	KeyOptions pcert.KeyOptions
 }
 
 func getKeyRelativeToFile(certPath string) string {
@@ -40,13 +53,13 @@ func getKeyRelativeToFile(certPath string) string {
 }
 
 func newCreateCmd() *cobra.Command {
-	createCommand := &createCommand{
-		CertificateOutputLocation: "",
-		KeyOutputLocation:         "",
-		SignCertificateLocation:   "",
-		SignKeyLocation:           "",
-		CertificateOptions:        pcert.CertificateOptions{},
-		KeyOptions:                pcert.KeyOptions{},
+	opts := &createOptions{
+		Cert:               "",
+		Key:                "",
+		SignCert:           "",
+		SignKey:            "",
+		CertificateOptions: pcert.CertificateOptions{},
+		KeyOptions:         pcert.KeyOptions{},
 	}
 	cmd := &cobra.Command{
 		Use:   "create [OUTPUT-CERTIFICATE [OUTPUT-KEY]]",
@@ -61,85 +74,65 @@ pcert create tls.crt
 `,
 		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			createCommand.In = cmd.InOrStdin()
-			createCommand.Out = cmd.OutOrStdout()
+			stdin := &stdinKeeper{
+				stdin: cmd.InOrStdin(),
+			}
+
 			// default key output file relative to certificate
 			if len(args) == 1 && args[0] != "-" {
-				createCommand.CertificateOutputLocation = args[0]
-				createCommand.KeyOutputLocation = getKeyRelativeToFile(args[0])
+				opts.Cert = args[0]
+				opts.Key = getKeyRelativeToFile(args[0])
 			}
 			if len(args) == 2 {
-				createCommand.CertificateOutputLocation = args[0]
-				createCommand.KeyOutputLocation = args[1]
+				opts.Cert = args[0]
+				opts.Key = args[1]
 			}
 
-			certTemplate := pcert.NewCertificate(&createCommand.CertificateOptions)
-
-			for _, p := range createCommand.Profiles {
-				switch p {
-				case "client":
-					pcert.SetClientProfile(certTemplate)
-				case "server":
-					pcert.SetServerProfile(certTemplate)
-				case "ca":
-					pcert.SetCAProfile(certTemplate)
-				default:
-					return fmt.Errorf("unknown profile '%s'", p)
+			// SignCert is set but SignKey is empty we default
+			// SignKey
+			if opts.SignCert != "" && opts.SignKey == "" {
+				if isFile(opts.SignCert) {
+					opts.SignKey = getKeyRelativeToFile(opts.SignCert)
 				}
 			}
 
-			privateKey, publicKey, err := pcert.GenerateKey(createCommand.KeyOptions)
+			certTemplate := pcert.NewCertificate(&opts.CertificateOptions)
+
+			err := setProfiles(opts.Profiles, certTemplate)
+			if err != nil {
+				return err
+			}
+
+			privateKey, publicKey, err := pcert.GenerateKey(opts.KeyOptions)
 			if err != nil {
 				return err
 			}
 
 			var (
-				stdin    []byte
 				signCert *x509.Certificate
 				signKey  any
 			)
 
 			// if set we sign certificate
-			if createCommand.SignCertificateLocation != "" {
-				slog.Info("process signer")
-				if createCommand.SignCertificateLocation == "-" {
-					stdin, err = io.ReadAll(createCommand.In)
-					if err != nil {
-						return err
-					}
-
-					slog.Info("read certificate from stdin")
-					signCert, err = pcert.Parse(stdin)
-					if err != nil {
-						return err
-					}
-				} else {
-					slog.Info("read certificate from file", "file", createCommand.SignCertificateLocation)
-					signCert, err = pcert.Load(createCommand.SignCertificateLocation)
-					if err != nil {
-						return err
-					}
+			if opts.SignCert != "" {
+				data, err := readStdinOrFile(opts.SignCert, stdin)
+				if err != nil {
+					return err
+				}
+				signCert, err = pcert.Parse(data)
+				if err != nil {
+					return err
 				}
 
-				if createCommand.SignKeyLocation == "" && createCommand.SignCertificateLocation != "-" {
-					slog.Info("read key from relatvie location", "file", getKeyRelativeToFile(createCommand.SignCertificateLocation))
-					signKey, err = pcert.LoadKey(getKeyRelativeToFile(createCommand.SignCertificateLocation))
-					if err != nil {
-						return err
-					}
-				} else if createCommand.SignKeyLocation == "" && createCommand.SignCertificateLocation == "-" {
-					slog.Info("read key from stdin")
-					signKey, err = pcert.ParseKey(stdin)
-					if err != nil {
-						return err
-					}
-				} else {
-					slog.Info("read key from file", "file", createCommand.SignKeyLocation)
-					signKey, err = pcert.LoadKey(createCommand.SignKeyLocation)
-					if err != nil {
-						return err
-					}
+				data, err = readStdinOrFile(opts.SignKey, stdin)
+				if err != nil {
+					return err
 				}
+				signKey, err = pcert.ParseKey(data)
+				if err != nil {
+					return err
+				}
+
 			} else {
 				signCert = certTemplate
 				signKey = privateKey
@@ -156,34 +149,24 @@ pcert create tls.crt
 				return err
 			}
 
-			if createCommand.CertificateOutputLocation == "" || createCommand.CertificateOutputLocation == "-" {
-				_, err := createCommand.Out.Write(certPEM)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := os.WriteFile(createCommand.CertificateOutputLocation, certPEM, 0664)
-				if err != nil {
-					return err
-				}
+			err = writeStdoutOrFile(opts.Cert, certPEM, 0644, cmd.OutOrStdout())
+			if err != nil {
+				return err
 			}
 
-			if createCommand.KeyOutputLocation == "" || createCommand.KeyOutputLocation == "-" {
-				createCommand.Out.Write(keyPEM)
-			} else {
-				err := os.WriteFile(createCommand.KeyOutputLocation, keyPEM, 0600)
-				if err != nil {
-					return err
-				}
+			err = writeStdoutOrFile(opts.Key, keyPEM, 0644, cmd.OutOrStdout())
+			if err != nil {
+				return err
 			}
+
 			return nil
 		},
 	}
-	cmd.Flags().StringVarP(&createCommand.SignCertificateLocation, "sign-cert", "s", createCommand.SignCertificateLocation, "Certificate used to sign. If not specified a self-signed certificate is created")
-	cmd.Flags().StringVar(&createCommand.SignKeyLocation, "sign-key", createCommand.SignKeyLocation, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
-	cmd.Flags().StringSliceVar(&createCommand.Profiles, "profile", createCommand.Profiles, "Certificates profiles to apply (server, client, ca)")
+	cmd.Flags().StringVarP(&opts.SignCert, "sign-cert", "s", opts.SignCert, "Certificate used to sign. If not specified a self-signed certificate is created")
+	cmd.Flags().StringVar(&opts.SignKey, "sign-key", opts.SignKey, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
+	cmd.Flags().StringSliceVar(&opts.Profiles, "profile", opts.Profiles, "Certificates profiles to apply (server, client, ca)")
 
-	registerCertFlags(cmd, &createCommand.CertificateOptions)
-	registerKeyFlags(cmd, &createCommand.KeyOptions)
+	registerCertFlags(cmd, &opts.CertificateOptions)
+	registerKeyFlags(cmd, &opts.KeyOptions)
 	return cmd
 }

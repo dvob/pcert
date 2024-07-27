@@ -2,37 +2,41 @@ package main
 
 import (
 	"crypto/x509"
-	"fmt"
-	"os"
 
 	"github.com/dvob/pcert"
 	"github.com/spf13/cobra"
 )
 
-func newRequestCmd() *cobra.Command {
-	var (
-		csrOutput string
-		csr       = &x509.CertificateRequest{}
+type requestOptions struct {
+	// CSR is the location where the CSR will be written.
+	CSR string
 
-		keyOutput string
-		keyOpts   = pcert.KeyOptions{}
-	)
+	// Key is the location where the key will be written.
+	Key string
+
+	KeyOptions         pcert.KeyOptions
+	CertificateRequest x509.CertificateRequest
+}
+
+func newRequestCmd() *cobra.Command {
+	opts := &requestOptions{}
 	cmd := &cobra.Command{
 		Use:   "request [OUTPUT-CSR [OUTPUT-KEY]]",
 		Short: "Create a certificate signing request (CSR) and key",
 		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 1 && args[0] != "-" {
-				csrOutput = args[0]
-				keyOutput = getKeyRelativeToFile(args[0])
+			if len(args) > 0 {
+				opts.CSR = args[0]
+			}
+			if len(args) > 1 {
+				opts.Key = args[1]
 			}
 
-			if len(args) == 2 {
-				csrOutput = args[0]
-				keyOutput = args[1]
+			if opts.Key == "" && isFile(opts.CSR) {
+				opts.Key = getKeyRelativeToFile(opts.CSR)
 			}
 
-			csrDER, privateKey, err := pcert.CreateRequestWithKeyOptions(csr, keyOpts)
+			csrDER, privateKey, err := pcert.CreateRequestWithKeyOptions(&opts.CertificateRequest, opts.KeyOptions)
 			if err != nil {
 				return err
 			}
@@ -44,35 +48,21 @@ func newRequestCmd() *cobra.Command {
 
 			csrPEM := pcert.EncodeCSR(csrDER)
 
-			if csrOutput == "" || csrOutput == "-" {
-				_, err := cmd.OutOrStdout().Write(csrPEM)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := os.WriteFile(csrOutput, csrPEM, 0664)
-				if err != nil {
-					return fmt.Errorf("failed to write CSR '%s': %w", csrOutput, err)
-				}
+			err = writeStdoutOrFile(opts.CSR, csrPEM, 0664, cmd.OutOrStdout())
+			if err != nil {
+				return err
+			}
+			err = writeStdoutOrFile(opts.Key, keyPEM, 0600, cmd.OutOrStdout())
+			if err != nil {
+				return err
 			}
 
-			if keyOutput == "" || keyOutput == "-" {
-				_, err := cmd.OutOrStdout().Write(keyPEM)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = os.WriteFile(keyOutput, keyPEM, 0600)
-				if err != nil {
-					return fmt.Errorf("failed to write key '%s': %w", keyOutput, err)
-				}
-			}
 			return nil
 		},
 	}
 
-	registerRequestFlags(cmd, csr)
-	registerKeyFlags(cmd, &keyOpts)
+	registerRequestFlags(cmd, &opts.CertificateRequest)
+	registerKeyFlags(cmd, &opts.KeyOptions)
 
 	return cmd
 }
