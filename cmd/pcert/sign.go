@@ -120,7 +120,8 @@ func newSignCmd() *cobra.Command {
 	cmd.Flags().StringVar(&signKeyLocation, "sign-key", signKeyLocation, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
 
 	cmd.Flags().StringSliceVar(&profiles, "profile", profiles, "profile to set on the certificate (server, client, ca)")
-	BindCertificateOptionsFlags(cmd.Flags(), &certOpts)
+
+	registerCertFlags(cmd, &certOpts)
 
 	return cmd
 }

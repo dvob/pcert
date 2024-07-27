@@ -178,9 +178,15 @@ func NewCertificate(opts *CertificateOptions) *x509.Certificate {
 		Policies:                    opts.Policies,
 	}
 
-	if opts.MaxPathLen != nil {
-		cert.MaxPathLen = *opts.MaxPathLen
+	if opts.MaxPathLen == nil {
+		cert.MaxPathLen = -1
+		cert.MaxPathLenZero = false
+	} else if *opts.MaxPathLen == 0 {
+		cert.MaxPathLen = 0
 		cert.MaxPathLenZero = true
+	} else {
+		cert.MaxPathLen = *opts.MaxPathLen
+		cert.MaxPathLenZero = false
 	}
 
 	if cert.NotBefore.IsZero() {

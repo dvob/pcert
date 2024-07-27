@@ -4,7 +4,22 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"strings"
+
+	"github.com/spf13/pflag"
 )
+
+func bindSubjectFlags(fs *pflag.FlagSet, subject *pkix.Name) {
+	fs.StringSliceVar(&subject.Country, "subject-country", subject.Country, "subject country (C)")
+	fs.StringSliceVar(&subject.Organization, "subject-org", subject.Organization, "subject organization (O)")
+	fs.StringSliceVar(&subject.OrganizationalUnit, "subject-ou", subject.OrganizationalUnit, "subject organizational unit (OU)")
+	fs.StringSliceVar(&subject.Locality, "subject-locality", subject.Locality, "subject locality (L)")
+	fs.StringSliceVar(&subject.Province, "subject-province", subject.Province, "subject province (P)")
+	fs.StringSliceVar(&subject.StreetAddress, "subject-street-address", subject.StreetAddress, "subject street address (STREET)")
+	fs.StringSliceVar(&subject.PostalCode, "subject-postal-code", subject.PostalCode, "subject postal code (POSTALCODE)")
+	fs.StringVar(&subject.SerialNumber, "subject-serial-number", subject.SerialNumber, "subject serial number (SERIALNUMBER)")
+	fs.StringVar(&subject.CommonName, "subject-common-name", subject.CommonName, "subject common name (CN)")
+	fs.StringVarP(&subject.CommonName, "name", "n", subject.CommonName, "subject common name (CN). alias for --subject-common-name")
+}
 
 type subjectValue struct {
 	value *pkix.Name

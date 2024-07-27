@@ -71,11 +71,8 @@ func newRequestCmd() *cobra.Command {
 		},
 	}
 
-	BindKeyFlags(cmd.Flags(), &keyOpts)
-	RegisterKeyCompletionFuncs(cmd)
-
-	BindCertificateRequestFlags(cmd.Flags(), csr)
-	RegisterCertificateRequestCompletionFuncs(cmd)
+	registerRequestFlags(cmd, csr)
+	registerKeyFlags(cmd, &keyOpts)
 
 	return cmd
 }

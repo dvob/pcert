@@ -182,7 +182,8 @@ pcert create tls.crt
 	cmd.Flags().StringVarP(&createCommand.SignCertificateLocation, "sign-cert", "s", createCommand.SignCertificateLocation, "Certificate used to sign. If not specified a self-signed certificate is created")
 	cmd.Flags().StringVar(&createCommand.SignKeyLocation, "sign-key", createCommand.SignKeyLocation, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
 	cmd.Flags().StringSliceVar(&createCommand.Profiles, "profile", createCommand.Profiles, "Certificates profiles to apply (server, client, ca)")
-	BindCertificateOptionsFlags(cmd.Flags(), &createCommand.CertificateOptions)
-	BindKeyFlags(cmd.Flags(), &createCommand.KeyOptions)
+
+	registerCertFlags(cmd, &createCommand.CertificateOptions)
+	registerKeyFlags(cmd, &createCommand.KeyOptions)
 	return cmd
 }
