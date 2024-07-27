@@ -13,28 +13,32 @@ import (
 	"github.com/dvob/pcert"
 )
 
-func runCmd(args []string, env map[string]string) (io.WriteCloser, *bytes.Buffer, *bytes.Buffer, error) {
+func runCmd(args []string, stdin io.Reader, env map[string]string) (*bytes.Buffer, *bytes.Buffer, error) {
+
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
-	stdinReader, stdinWriter := io.Pipe()
-	cmd := newRootCmd()
-	cmd.SetArgs(args)
-	cmd.SetIn(stdinReader)
-	cmd.SetOut(stdout)
-	cmd.SetErr(stderr)
-	cmd = WithEnv(cmd, args, func(name string) (string, bool) {
+
+	if stdin == nil {
+		stdin = bytes.NewReader(nil)
+	}
+
+	code := run(args, stdin, stdout, stderr, func(key string) (string, bool) {
 		if env == nil {
 			return "", false
 		}
-		val, ok := env[name]
+		val, ok := env[key]
 		return val, ok
 	})
 
-	return stdinWriter, stdout, stderr, cmd.Execute()
+	if code != 0 {
+		return stdout, stderr, fmt.Errorf("execution failed. stderr='%s'", stderr.String())
+	}
+
+	return stdout, stderr, nil
 }
 
 func runAndLoad(args []string, env map[string]string) (*x509.Certificate, error) {
-	_, stdout, stderr, err := runCmd(args, env)
+	stdout, stderr, err := runCmd(args, nil, env)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +49,7 @@ func runAndLoad(args []string, env map[string]string) (*x509.Certificate, error)
 
 	cert, err := pcert.Parse(stdout.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("could not read certificate from standard output: %s", err)
+		return nil, fmt.Errorf("could not read certificate from standard output: %s. stdout='%s'", err, stdout.String())
 	}
 
 	return cert, err
@@ -215,10 +219,10 @@ func Test_create_not_before_with_expiry(t *testing.T) {
 func Test_create_output_parameter(t *testing.T) {
 	defer os.Remove("tls.crt")
 	defer os.Remove("tls.key")
-	_, _, _, err := runCmd([]string{
+	_, _, err := runCmd([]string{
 		"create",
 		"tls.crt",
-	}, nil)
+	}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 		return

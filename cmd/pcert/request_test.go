@@ -8,11 +8,11 @@ import (
 
 func Test_request(t *testing.T) {
 	name := "foo"
-	_, stdout, stderr, err := runCmd([]string{
+	stdout, stderr, err := runCmd([]string{
 		"request",
 		"--subject",
 		"/CN=" + name,
-	}, nil)
+	}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 		return

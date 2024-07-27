@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -20,11 +21,27 @@ var (
 )
 
 func main() {
-	err := WithEnv(newRootCmd(), os.Args[1:], os.LookupEnv).Execute()
+	code := run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, os.LookupEnv)
+	os.Exit(code)
+}
+
+func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, getEnv func(string) (string, bool)) int {
+	rootCmd := newRootCmd()
+
+	rootCmd.SetOut(stdout)
+	rootCmd.SetErr(stderr)
+	rootCmd.SetIn(stdin)
+
+	rootCmd = WithEnv(rootCmd, args, getEnv)
+	rootCmd.SetArgs(args)
+
+	err := rootCmd.Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fmt.Fprintln(stderr, err)
+		return 1
 	}
+
+	return 0
 }
 
 func newRootCmd() *cobra.Command {
