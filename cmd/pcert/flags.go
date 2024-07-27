@@ -62,3 +62,21 @@ func RegisterCertificateRequestCompletionFuncs(cmd *cobra.Command) {
 func RegisterKeyCompletionFuncs(cmd *cobra.Command) {
 	_ = cmd.RegisterFlagCompletionFunc("key-alg", keyAlgorithmCompletionFunc)
 }
+
+func BindCertificateOptionsFlags(fs *pflag.FlagSet, co *pcert.CertificateOptions) {
+	fs.StringSliceVar(&co.DNSNames, "dns", []string{}, "DNS subject alternative name.")
+	fs.StringSliceVar(&co.EmailAddresses, "email", []string{}, "Email subject alternative name.")
+	fs.IPSliceVar(&co.IPAddresses, "ip", []net.IP{}, "IP subject alternative name.")
+	fs.Var(newURISliceValue(&co.URIs), "uri", "URI subject alternative name.")
+	fs.Var(newSignAlgValue(&co.SignatureAlgorithm), "sign-alg", "Signature Algorithm. See 'pcert list' for available algorithms.")
+	fs.Var(newTimeValue(&co.NotBefore), "not-before", fmt.Sprintf("Not valid before time in RFC3339 format (e.g. '%s').", time.Now().UTC().Format(time.RFC3339)))
+	fs.Var(newTimeValue(&co.NotAfter), "not-after", fmt.Sprintf("Not valid after time in RFC3339 format (e.g. '%s').", time.Now().Add(time.Hour*24*60).UTC().Format(time.RFC3339)))
+	fs.Var(newSubjectValue(&co.Subject), "subject", "Subject in the form '/C=CH/O=My Org/OU=My Team'.")
+
+	//fs.BoolVar(&co.BasicConstraintsValid, "basic-constraints", cert.BasicConstraintsValid, "Add basic constraints extension.")
+	//fs.BoolVar(&co.IsCA, "is-ca", cert.IsCA, "Mark certificate as CA in the basic constraints. Only takes effect if --basic-constraints is true.")
+	//fs.Var(newMaxPathLengthValue(co), "max-path-length", "Sets the max path length in the basic constraints.")
+
+	fs.Var(newKeyUsageValue(&co.KeyUsage), "key-usage", "Set the key usage. See 'pcert list' for available key usages.")
+	fs.Var(newExtKeyUsageValue(&co.ExtKeyUsage), "ext-key-usage", "Set the extended key usage. See 'pcert list' for available extended key usages.")
+}

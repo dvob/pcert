@@ -9,19 +9,14 @@ const (
 	defaultKeyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
 )
 
-// NewCertificate returns a new certificate which have the CommonName set to name
-func NewCertificate(name string) *x509.Certificate {
-	return &x509.Certificate{
-		Subject: pkix.Name{
-			CommonName: name,
-		},
-	}
-}
-
 // NewClientCertificate returns a new certificate. The CommonName is set to name
 // and typical client certificate settings are set (see SetClientProfile function).
 func NewClientCertificate(name string) *x509.Certificate {
-	cert := NewCertificate(name)
+	cert := NewCertificate(&CertificateOptions{
+		Subject: pkix.Name{
+			CommonName: name,
+		},
+	})
 	SetClientProfile(cert)
 	return cert
 }
@@ -29,7 +24,11 @@ func NewClientCertificate(name string) *x509.Certificate {
 // NewServerCertificate returns a new certificate. The CommonName is set to name
 // and typical server certificate settings are set (see SetServerProfile function).
 func NewServerCertificate(name string) *x509.Certificate {
-	cert := NewCertificate(name)
+	cert := NewCertificate(&CertificateOptions{
+		Subject: pkix.Name{
+			CommonName: name,
+		},
+	})
 	SetServerProfile(cert)
 	return cert
 }
@@ -37,7 +36,11 @@ func NewServerCertificate(name string) *x509.Certificate {
 // NewCACertificate returns a new certificate. The CommonName is set to name and
 // typical CA certificate settings are set (see SetCAProfile function).
 func NewCACertificate(name string) *x509.Certificate {
-	cert := NewCertificate(name)
+	cert := NewCertificate(&CertificateOptions{
+		Subject: pkix.Name{
+			CommonName: name,
+		},
+	})
 	SetCAProfile(cert)
 	return cert
 }

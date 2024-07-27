@@ -3,13 +3,15 @@ package pcert
 import (
 	"crypto"
 	"crypto/rand"
-	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"errors"
 	"fmt"
 	"io"
 	"math/big"
+	"net"
+	"net/url"
 	"reflect"
 	"time"
 )
@@ -20,121 +22,67 @@ const (
 )
 
 // Create creates a x509.Certificate and a key with the default key options. See CreateWithKeyOptions for more details.
-func Create(cert, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+func CreateCertificate(cert, signCert *x509.Certificate, signKey crypto.PrivateKey) (certDER []byte, privateKey crypto.PrivateKey, err error) {
 	return CreateWithKeyOptions(cert, KeyOptions{}, signCert, signKey)
 }
 
-// CreateWithKeyOptions creates a key and certificate. The certificate is signed
+// CreateCertificateWithKeyOptions creates a key and certificate. The certificate is signed
 // used signCert and signKey. If signCert or signKey are nil, a self-signed
 // certificate will be created. The certificate and the key are returned PEM encoded.
-func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCert *x509.Certificate, signKey crypto.PrivateKey) (certPEM, keyPEM []byte, err error) {
+func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCert *x509.Certificate, signKey crypto.PrivateKey) (certDER []byte, privateKey crypto.PrivateKey, err error) {
 	priv, pub, err := GenerateKey(keyOptions)
 	if err != nil {
-		return
-	}
-
-	keyPEM, err = EncodeKey(priv)
-	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	// If signCert and signKey are missing we self sign the certificate
 	if signCert == nil && signKey == nil {
-		certPEM, err = Sign(cert, pub, cert, priv)
-	} else if signCert != nil && signKey != nil {
-		certPEM, err = Sign(cert, pub, signCert, signKey)
-	} else {
-		if signCert == nil {
-			return nil, nil, fmt.Errorf("certificate for signing missing")
-		}
-		return nil, nil, fmt.Errorf("private key for signing missing")
-	}
-	return certPEM, keyPEM, err
-}
-
-// Sign set some defaults on a certificate and signs it with the  signCert and
-// the signKey. The following defaults are set they are not set explicitly in the
-// certificate:
-//
-//   - SubjectKeyId is generated based on the publicKey
-//   - The AuthorityKeyId is set based on the SubjectKeyId of the signCert
-//   - NotBefore is set to time.Now()
-//   - NotAfter is set to NotBefore + DefaultValidityPeriod
-//   - SerialNumber is set to a randomly generated serial number
-//
-// The created certificate is returned PEM encoded.
-func Sign(cert *x509.Certificate, publicKey any, signCert *x509.Certificate, signKey any) (certPEM []byte, err error) {
-	if cert.SubjectKeyId == nil {
-		subjectKeyID, err := getSubjectKeyID(publicKey)
-		if err != nil {
-			return nil, err
-		}
-		cert.SubjectKeyId = subjectKeyID
-	}
-	if cert.AuthorityKeyId == nil {
-		// TODO: is probably already done in Go
-		cert.AuthorityKeyId = signCert.SubjectKeyId
+		signCert = cert
+		signKey = priv
 	}
 
-	if cert.NotBefore.IsZero() {
-		cert.NotBefore = time.Now()
+	if signCert == nil {
+		return nil, nil, fmt.Errorf("signing certificate cannot be nil")
+	}
+	if signKey == nil {
+		return nil, nil, fmt.Errorf("signing key cannot be nil")
 	}
 
-	if cert.NotAfter.IsZero() {
-		cert.NotAfter = cert.NotBefore.Add(DefaultValidityPeriod)
-	}
-
-	if cert.SerialNumber == nil {
-		serialNumber, err := generateSerial(rand.Reader)
-		if err != nil {
-			return nil, err
-		}
-		cert.SerialNumber = serialNumber
-	}
-
-	der, err := x509.CreateCertificate(rand.Reader, cert, signCert, publicKey, signKey)
+	certDER, err = x509.CreateCertificate(rand.Reader, cert, signCert, pub, signKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	return Encode(der), nil
+	return certDER, priv, err
 }
 
 // Request creates a CSR and a key. The key is created with the default key
 // options. See RequestWithKeyOptions for more details.
-func Request(csr *x509.CertificateRequest) (csrPEM, keyPEM []byte, err error) {
-	return RequestWithKeyOptions(csr, KeyOptions{})
+func CreateRequest(csr *x509.CertificateRequest) (csrPEM []byte, privateKey crypto.PrivateKey, err error) {
+	return CreateRequestWithKeyOptions(csr, KeyOptions{})
 }
 
 // RequestWithKeyOptions creates a CSR and a key based on key options.  The key is
 // created with the default key options.
-func RequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM, keyPEM []byte, err error) {
+func CreateRequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM []byte, privateKey crypto.PrivateKey, err error) {
 	priv, _, err := GenerateKey(keyOptions)
 	if err != nil {
 		return
 	}
 
-	keyPEM, err = EncodeKey(priv)
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csr, priv)
 	if err != nil {
 		return
 	}
 
-	der, err := x509.CreateCertificateRequest(rand.Reader, csr, priv)
-	if err != nil {
-		return
-	}
-
-	csrPEM = EncodeCSR(der)
-
-	return
+	return csrDER, priv, nil
 }
 
 // SignCSR applies the settings from csr and return the signed certificate
-func SignCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey any) (certPEM []byte, err error) {
+func CreateCertificateWithCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey any) (certDER []byte, err error) {
 	// TODO: settings from cert should take precedence
 	applyCSR(csr, cert)
 
-	return Sign(cert, csr.PublicKey, signCert, signKey)
+	return x509.CreateCertificate(rand.Reader, cert, signCert, csr.PublicKey, signKey)
 }
 
 // apply values of CSR to certificate
@@ -166,26 +114,16 @@ func applyCSR(csr *x509.CertificateRequest, cert *x509.Certificate) {
 	}
 }
 
-func getSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
-	encodedPub, err := x509.MarshalPKIXPublicKey(pub)
-	if err != nil {
-		return nil, err
-	}
-
-	pubHash := sha1.Sum(encodedPub)
-	return pubHash[:], nil
-}
-
 // GenerateSerial produces an RFC 5280 conformant serial number to be used
 // in a certificate. The serial number will be a positive integer, no more
 // than 20 octets in length, generated using the provided random source.
 //
 // Code from: https://go-review.googlesource.com/c/go/+/479120/3/src/crypto/x509/x509.go#2485
-func generateSerial(rand io.Reader) (*big.Int, error) {
+func generateSerial() (*big.Int, error) {
 	randBytes := make([]byte, 20)
 	for i := 0; i < 10; i++ {
 		// get 20 random bytes
-		_, err := io.ReadFull(rand, randBytes)
+		_, err := io.ReadFull(rand.Reader, randBytes)
 		if err != nil {
 			return nil, err
 		}
@@ -200,4 +138,125 @@ func generateSerial(rand io.Reader) (*big.Int, error) {
 		return serial, nil
 	}
 	return nil, errors.New("x509: failed to generate serial number because the random source returns only zeros")
+}
+
+func NewCertificate(opts *CertificateOptions) *x509.Certificate {
+	if opts == nil {
+		opts = &CertificateOptions{}
+	}
+	cert := &x509.Certificate{
+		SignatureAlgorithm:          opts.SignatureAlgorithm,
+		SerialNumber:                opts.SerialNumber,
+		Subject:                     opts.Subject,
+		NotBefore:                   opts.NotBefore,
+		NotAfter:                    opts.NotAfter,
+		KeyUsage:                    opts.KeyUsage,
+		ExtraExtensions:             opts.ExtraExtensions,
+		ExtKeyUsage:                 opts.ExtKeyUsage,
+		UnknownExtKeyUsage:          opts.UnknownExtKeyUsage,
+		BasicConstraintsValid:       opts.BasicConstraintsValid,
+		IsCA:                        opts.IsCA,
+		SubjectKeyId:                opts.SubjectKeyId,
+		AuthorityKeyId:              opts.AuthorityKeyId,
+		OCSPServer:                  opts.OCSPServer,
+		IssuingCertificateURL:       opts.IssuingCertificateURL,
+		DNSNames:                    opts.DNSNames,
+		EmailAddresses:              opts.EmailAddresses,
+		IPAddresses:                 opts.IPAddresses,
+		URIs:                        opts.URIs,
+		PermittedDNSDomainsCritical: opts.PermittedDNSDomainsCritical,
+		PermittedDNSDomains:         opts.PermittedDNSDomains,
+		ExcludedDNSDomains:          opts.ExcludedDNSDomains,
+		PermittedIPRanges:           opts.PermittedIPRanges,
+		ExcludedIPRanges:            opts.ExcludedIPRanges,
+		PermittedEmailAddresses:     opts.PermittedEmailAddresses,
+		ExcludedEmailAddresses:      opts.ExcludedEmailAddresses,
+		PermittedURIDomains:         opts.PermittedURIDomains,
+		ExcludedURIDomains:          opts.ExcludedURIDomains,
+		CRLDistributionPoints:       opts.CRLDistributionPoints,
+		PolicyIdentifiers:           opts.PolicyIdentifiers,
+		Policies:                    opts.Policies,
+	}
+
+	if opts.MaxPathLen != nil {
+		cert.MaxPathLen = *opts.MaxPathLen
+		cert.MaxPathLenZero = true
+	}
+
+	if cert.NotBefore.IsZero() {
+		cert.NotBefore = time.Now()
+	}
+	if cert.NotAfter.IsZero() {
+		if opts.Expiry == 0 {
+			cert.NotAfter = cert.NotBefore.Add(DefaultValidityPeriod)
+		} else {
+			cert.NotAfter = cert.NotBefore.Add(opts.Expiry)
+		}
+	}
+
+	if cert.SerialNumber == nil {
+		var err error
+		cert.SerialNumber, err = generateSerial()
+		if err != nil {
+			// reading randomness failed
+			panic(err.Error())
+		}
+	}
+	return cert
+}
+
+// CertificateOptions represents all options which can be set using
+// CreateCertificate (see Go docs of it). Further it offers Expiry to set a
+// validity duration instead of absolute times.
+type CertificateOptions struct {
+	SignatureAlgorithm x509.SignatureAlgorithm
+
+	SerialNumber *big.Int
+	Subject      pkix.Name
+
+	NotBefore, NotAfter time.Time // Validity bounds.
+	Expiry              time.Duration
+
+	KeyUsage    x509.KeyUsage
+	ExtKeyUsage []x509.ExtKeyUsage // Sequence of extended key usages.
+
+	ExtraExtensions    []pkix.Extension
+	UnknownExtKeyUsage []asn1.ObjectIdentifier // Encountered extended key usages unknown to this package.
+
+	BasicConstraintsValid bool
+	IsCA                  bool
+	// if nil MaxPathLen = 0, MaxPathLenZero = false
+	// else: MaxPathLen = *this, MaxPathLenZero = true
+	MaxPathLen *int
+
+	// if CA defaults to sha something something
+	SubjectKeyId []byte
+	// gets defaulted to parent.SubjectKeyID
+	AuthorityKeyId []byte
+
+	OCSPServer            []string
+	IssuingCertificateURL []string
+
+	// SAN
+	DNSNames       []string
+	EmailAddresses []string
+	IPAddresses    []net.IP
+	URIs           []*url.URL
+
+	// Name constraints
+	PermittedDNSDomainsCritical bool // if true then the name constraints are marked critical.
+	PermittedDNSDomains         []string
+	ExcludedDNSDomains          []string
+	PermittedIPRanges           []*net.IPNet
+	ExcludedIPRanges            []*net.IPNet
+	PermittedEmailAddresses     []string
+	ExcludedEmailAddresses      []string
+	PermittedURIDomains         []string
+	ExcludedURIDomains          []string
+
+	// CRL Distribution Points
+	CRLDistributionPoints []string
+
+	PolicyIdentifiers []asn1.ObjectIdentifier
+	Policies          []x509.OID
 }

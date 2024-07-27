@@ -9,13 +9,19 @@ import (
 )
 
 func createAndParse(name string, signCert *x509.Certificate, signKey crypto.PrivateKey) (*x509.Certificate, crypto.PrivateKey, error) {
-	crt := &x509.Certificate{
+	crt := NewCertificate(&CertificateOptions{
 		Subject: pkix.Name{
 			CommonName: name,
 		},
+	})
+
+	certDER, key, err := CreateCertificate(crt, signCert, signKey)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	certPEM, keyPEM, err := Create(crt, signCert, signKey)
+	certPEM := Encode(certDER)
+	keyPEM, err := EncodeKey(key)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -78,8 +84,8 @@ func TestCreate_missing_key(t *testing.T) {
 		t.Fatal("no error returned")
 	}
 
-	if !strings.Contains(err.Error(), "key for signing missing") {
-		t.Fatalf("error does not contain string 'key for signing missing': %s", err.Error())
+	if !strings.Contains(err.Error(), "signing key cannot be nil") {
+		t.Fatalf("error does not contain string 'signing key cannot be nil': %s", err.Error())
 	}
 }
 
@@ -98,7 +104,7 @@ func TestCreate_missing_certificate(t *testing.T) {
 		t.Fatal("no error returned")
 	}
 
-	if !strings.Contains(err.Error(), "certificate for signing missing") {
-		t.Fatalf("error does not contain string 'certificate for signing missing': %s", err.Error())
+	if !strings.Contains(err.Error(), "signing certificate cannot be nil") {
+		t.Fatalf("error does not contain string 'signing certificate cannot be nil': %s", err.Error())
 	}
 }

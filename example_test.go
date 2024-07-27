@@ -12,16 +12,23 @@ func ExampleCreate_selfSigned() {
 	cert := NewServerCertificate("localhost")
 
 	// self-signed
-	certPEM, keyPEM, err := Create(cert, nil, nil)
+	certDER, key, err := CreateCertificate(cert, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile("server.crt", certPEM, 0o644)
+	keyPEM, err := EncodeKey(key)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = os.WriteFile("server.crt", keyPEM, 0o600)
+
+	certPEM := Encode(certDER)
+
+	err = os.WriteFile("server.crt", certPEM, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile("server.crt", keyPEM, 0600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,10 +50,17 @@ func ExampleCreate_signed() {
 	// create signed server certificate
 	cert := NewServerCertificate("localhost")
 
-	certPEM, keyPEM, err := Create(cert, rootCACert, rootCAKey)
+	certDER, key, err := CreateCertificate(cert, rootCACert, rootCAKey)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	keyPEM, err := EncodeKey(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	certPEM := Encode(certDER)
 
 	err = os.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
@@ -67,10 +81,17 @@ func ExampleCreateWithKeyOptions() {
 		Size:      4096,
 	}
 
-	certPEM, keyPEM, err := CreateWithKeyOptions(cert, keyOptions, nil, nil)
+	certDER, key, err := CreateWithKeyOptions(cert, keyOptions, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	keyPEM, err := EncodeKey(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	certPEM := Encode(certDER)
 
 	_, _ = os.Stdout.Write(certPEM)
 	_, _ = os.Stdout.Write(keyPEM)
