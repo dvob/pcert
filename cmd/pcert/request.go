@@ -34,16 +34,23 @@ func newRequestCmd() *cobra.Command {
 				key.path = name + keyFileSuffix
 			}
 
-			csrPEM, keyPEM, err := pcert.RequestWithKeyOptions(csr, key.opts)
+			csrDER, privateKey, err := pcert.CreateRequestWithKeyOptions(csr, key.opts)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(key.path, keyPEM, 0o600)
+			keyPEM, err := pcert.EncodeKey(privateKey)
+			if err != nil {
+				return err
+			}
+
+			csrPEM := pcert.EncodeCSR(csrDER)
+
+			err = os.WriteFile(key.path, keyPEM, 0600)
 			if err != nil {
 				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = os.WriteFile(csrFile, csrPEM, 0o640)
+			err = os.WriteFile(csrFile, csrPEM, 0640)
 			if err != nil {
 				return fmt.Errorf("failed to write CSR '%s': %w", csrFile, err)
 			}

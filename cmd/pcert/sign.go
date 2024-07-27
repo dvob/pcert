@@ -45,10 +45,13 @@ func newSignCmd() *cobra.Command {
 				return err
 			}
 
-			certPEM, err := pcert.SignCSR(csr, cert.cert, signPair.cert, signPair.key)
+			certDER, err := pcert.CreateCertificateWithCSR(csr, cert.cert, signPair.cert, signPair.key)
 			if err != nil {
 				return err
 			}
+
+			certPEM := pcert.Encode(certDER)
+
 			err = os.WriteFile(cert.path, certPEM, 0o640)
 			return err
 		},

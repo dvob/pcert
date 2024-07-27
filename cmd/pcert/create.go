@@ -48,16 +48,23 @@ the key (<name>.key).`,
 				return err
 			}
 
-			certPEM, keyPEM, err := pcert.CreateWithKeyOptions(cert.cert, key.opts, signPair.cert, signPair.key)
+			certDER, privateKey, err := pcert.CreateWithKeyOptions(cert.cert, key.opts, signPair.cert, signPair.key)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(key.path, keyPEM, 0o600)
+			keyPEM, err := pcert.EncodeKey(privateKey)
+			if err != nil {
+				return err
+			}
+
+			certPEM := pcert.Encode(certDER)
+
+			err = os.WriteFile(key.path, keyPEM, 0600)
 			if err != nil {
 				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
 			}
-			err = os.WriteFile(cert.path, certPEM, 0o640)
+			err = os.WriteFile(cert.path, certPEM, 0640)
 			if err != nil {
 				return fmt.Errorf("failed to write certificate '%s': %w", key.path, err)
 			}

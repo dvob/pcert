@@ -25,7 +25,7 @@ type createCommand struct {
 	SignKeyLocation         string
 
 	Profile            []string
-	CertificateOptions CertificateOptions
+	CertificateOptions pcert.CertificateOptions
 	KeyOptions         pcert.KeyOptions
 }
 
@@ -47,7 +47,7 @@ func newCreate2Cmd() *cobra.Command {
 		KeyOutputLocation:         "",
 		SignCertificateLocation:   "",
 		SignKeyLocation:           "",
-		CertificateOptions:        CertificateOptions{},
+		CertificateOptions:        pcert.CertificateOptions{},
 		KeyOptions:                pcert.KeyOptions{},
 	}
 	cmd := &cobra.Command{
@@ -73,7 +73,7 @@ pcert create tls.crt
 				createCommand.KeyOutputLocation = args[1]
 			}
 
-			certTemplate := NewCertificate(&createCommand.CertificateOptions)
+			certTemplate := pcert.NewCertificate(&createCommand.CertificateOptions)
 
 			for _, p := range createCommand.Profile {
 				switch p {
@@ -179,6 +179,6 @@ pcert create tls.crt
 	cmd.Flags().StringVarP(&createCommand.SignCertificateLocation, "sign-cert", "s", createCommand.SignCertificateLocation, "Certificate used to sign. If not specified a self-signed certificate is created")
 	cmd.Flags().StringVar(&createCommand.SignKeyLocation, "sign-key", createCommand.SignKeyLocation, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
 	cmd.Flags().StringSliceVar(&createCommand.Profile, "profile", createCommand.Profile, "Certificates profiles to apply (server, client, ca)")
-	createCommand.CertificateOptions.BindFlags(cmd.Flags())
+	BindCertificateOptionsFlags(cmd.Flags(), &createCommand.CertificateOptions)
 	return cmd
 }
