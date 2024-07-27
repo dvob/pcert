@@ -24,7 +24,7 @@ func newRequestCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 && args[0] != "-" {
 				csrOutput = args[0]
-				keyOutput = getKeyRelativeToCert(args[0])
+				keyOutput = getKeyRelativeToFile(args[0])
 			}
 
 			if len(args) == 2 {

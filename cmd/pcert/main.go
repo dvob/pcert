@@ -41,7 +41,7 @@ prefix (e.g PCERT_CERT instad of --cert).`,
 		},
 	}
 	cmd.AddCommand(
-		newCreate2Cmd(),
+		newCreateCmd(),
 		newRequestCmd(),
 		newSignCmd(),
 		newShowCmd(),
