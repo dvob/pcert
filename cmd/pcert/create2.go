@@ -39,7 +39,7 @@ func getKeyRelativeToCert(certPath string) string {
 	return keyFilePath
 }
 
-func newCreateCmd() *cobra.Command {
+func newCreate2Cmd() *cobra.Command {
 	createCommand := &createCommand{
 		Out:                       os.Stdout,
 		In:                        os.Stdin,

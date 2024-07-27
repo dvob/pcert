@@ -6,7 +6,9 @@ import (
 	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"reflect"
 	"time"
@@ -70,6 +72,7 @@ func Sign(cert *x509.Certificate, publicKey any, signCert *x509.Certificate, sig
 		cert.SubjectKeyId = subjectKeyID
 	}
 	if cert.AuthorityKeyId == nil {
+		// TODO: is probably already done in Go
 		cert.AuthorityKeyId = signCert.SubjectKeyId
 	}
 
@@ -82,7 +85,7 @@ func Sign(cert *x509.Certificate, publicKey any, signCert *x509.Certificate, sig
 	}
 
 	if cert.SerialNumber == nil {
-		serialNumber, err := getRandomSerialNumber()
+		serialNumber, err := generateSerial(rand.Reader)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +176,28 @@ func getSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
 	return pubHash[:], nil
 }
 
-func getRandomSerialNumber() (*big.Int, error) {
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	return rand.Int(rand.Reader, serialNumberLimit)
+// GenerateSerial produces an RFC 5280 conformant serial number to be used
+// in a certificate. The serial number will be a positive integer, no more
+// than 20 octets in length, generated using the provided random source.
+//
+// Code from: https://go-review.googlesource.com/c/go/+/479120/3/src/crypto/x509/x509.go#2485
+func generateSerial(rand io.Reader) (*big.Int, error) {
+	randBytes := make([]byte, 20)
+	for i := 0; i < 10; i++ {
+		// get 20 random bytes
+		_, err := io.ReadFull(rand, randBytes)
+		if err != nil {
+			return nil, err
+		}
+		// clear the top bit (to prevent the number being negative)
+		randBytes[0] &= 0x7f
+		// convert to big.Int
+		serial := new(big.Int).SetBytes(randBytes)
+		// check that the serial is not zero
+		if serial.Sign() == 0 {
+			continue
+		}
+		return serial, nil
+	}
+	return nil, errors.New("x509: failed to generate serial number because the random source returns only zeros")
 }

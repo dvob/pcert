@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/dvob/pcert"
-	cmdutil "github.com/dvob/pcert/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -25,8 +24,8 @@ func (c *cert) bindFlags(cmd *cobra.Command) {
 	cmd.Flags().Var(newDurationValue(&c.expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
 	cmd.Flags().StringVar(&c.path, "cert", "", "Output file for the certificate. Defaults to <name>.crt")
 
-	cmdutil.BindCertificateFlags(cmd.Flags(), c.cert)
-	cmdutil.RegisterCertificateCompletionFuncs(cmd)
+	BindCertificateFlags(cmd.Flags(), c.cert)
+	RegisterCertificateCompletionFuncs(cmd)
 }
 
 // set options on certificate
@@ -67,8 +66,8 @@ type key struct {
 func (k *key) bindFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&k.path, "key", "", "Output file for the key. Defaults to <name>.key")
 
-	cmdutil.BindKeyFlags(cmd.Flags(), &k.opts)
-	cmdutil.RegisterKeyCompletionFuncs(cmd)
+	BindKeyFlags(cmd.Flags(), &k.opts)
+	RegisterKeyCompletionFuncs(cmd)
 }
 
 type signPair struct {

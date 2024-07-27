@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/dvob/pcert"
-	cmdutil "github.com/dvob/pcert/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -54,8 +53,8 @@ func newRequestCmd() *cobra.Command {
 
 	key.bindFlags(cmd)
 
-	cmdutil.BindCertificateRequestFlags(cmd.Flags(), csr)
-	cmdutil.RegisterCertificateRequestCompletionFuncs(cmd)
+	BindCertificateRequestFlags(cmd.Flags(), csr)
+	RegisterCertificateRequestCompletionFuncs(cmd)
 	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 
 	return cmd

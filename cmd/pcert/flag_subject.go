@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"crypto/x509/pkix"
@@ -25,25 +25,20 @@ func (s *subjectValue) String() string {
 }
 
 func (s *subjectValue) Set(subject string) error {
-	return parseSubjectInto(subject, s.value, true)
+	return parseSubjectInto(subject, s.value)
 }
 
-func (s *subjectValue) Merge(subject string) error {
-	return parseSubjectInto(subject, s.value, false)
-}
-
-func parseSubjectInto(subject string, target *pkix.Name, overwrite bool) error {
+func parseSubjectInto(subject string, target *pkix.Name) error {
 	for _, part := range strings.Split(subject, "/") {
 		if part == "" {
 			continue
 		}
-		parts := strings.SplitN(part, "=", 2)
-		if len(parts) != 2 {
+		key, value, ok := strings.Cut(part, "=")
+		if !ok {
 			return fmt.Errorf("failed to parse subject. could not split '%s'", part)
 		}
-		key := parts[0]
-		value := parts[1]
 
+		// https://datatracker.ietf.org/doc/html/rfc4519#section-2
 		switch key {
 		case "C":
 			target.Country = append(target.Country, value)
@@ -55,20 +50,14 @@ func parseSubjectInto(subject string, target *pkix.Name, overwrite bool) error {
 			target.Locality = append(target.Locality, value)
 		case "P":
 			target.Province = append(target.Province, value)
-		case "ST":
-			target.StreetAddress = append(target.StreetAddress, value)
 		case "STREET":
 			target.StreetAddress = append(target.StreetAddress, value)
 		case "POSTALCODE":
 			target.PostalCode = append(target.PostalCode, value)
 		case "SERIALNUMBER":
-			if overwrite {
-				target.SerialNumber = value
-			}
+			target.SerialNumber = value
 		case "CN":
-			if overwrite {
-				target.CommonName = value
-			}
+			target.CommonName = value
 		default:
 			return fmt.Errorf("unknown field '%s'", key)
 		}
