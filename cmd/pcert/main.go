@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	err := WithEnv(newRootCmd()).Execute()
+	err := WithEnv(newRootCmd(), os.Args[1:], os.LookupEnv).Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

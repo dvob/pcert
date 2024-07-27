@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -10,56 +13,54 @@ import (
 	"github.com/dvob/pcert"
 )
 
-func runCmd(args []string, env map[string]string) error {
-	os.Clearenv()
-	for k, v := range env {
-		os.Setenv(k, v)
-	}
+func runCmd(args []string, env map[string]string) (io.WriteCloser, *bytes.Buffer, *bytes.Buffer, error) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	stdinReader, stdinWriter := io.Pipe()
 	cmd := newRootCmd()
 	cmd.SetArgs(args)
-	return cmd.Execute()
+	cmd.SetIn(stdinReader)
+	cmd.SetOut(stdout)
+	cmd.SetErr(stderr)
+	cmd = WithEnv(cmd, args, func(name string) (string, bool) {
+		if env == nil {
+			return "", false
+		}
+		val, ok := env[name]
+		return val, ok
+	})
+
+	return stdinWriter, stdout, stderr, cmd.Execute()
 }
 
-func runCreateAndLoad(name string, args []string, env map[string]string) (*x509.Certificate, error) {
-	defer os.Remove(name + ".crt")
-	defer os.Remove(name + ".key")
-	fullArgs := []string{"create", name}
-	fullArgs = append(fullArgs, args...)
-	err := runCmd(fullArgs, env)
+func runAndLoad(args []string, env map[string]string) (*x509.Certificate, error) {
+	_, stdout, stderr, err := runCmd(args, env)
 	if err != nil {
 		return nil, err
 	}
 
-	cert, err := pcert.Load(name + ".crt")
+	if stderr.Len() != 0 {
+		return nil, fmt.Errorf("stderr not empty '%s'", stderr.String())
+	}
+
+	cert, err := pcert.Parse(stdout.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("could not read certificate from standard output: %s", err)
+	}
+
 	return cert, err
 }
 
 func Test_create(t *testing.T) {
 	name := "foo1"
-	cert, err := runCreateAndLoad("foo1", []string{}, nil)
+	cert, err := runAndLoad([]string{"create", "--subject", "/CN=" + name}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
 	if cert.Subject.CommonName != name {
-		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, name)
-	}
-}
-
-func Test_create_subject(t *testing.T) {
-	cn := "myCommonName"
-	cert, err := runCreateAndLoad("foo2", []string{
-		"--subject",
-		"CN=" + cn,
-	}, nil)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	if cert.Subject.CommonName != cn {
-		t.Errorf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, cn)
+		t.Fatalf("common name no set correctly: got: %s, want: %s", cert.Subject.CommonName, name)
 	}
 }
 
@@ -71,7 +72,8 @@ func Test_create_subject_multiple(t *testing.T) {
 		Organization:       []string{"Snakeoil Ltd."},
 		OrganizationalUnit: []string{"Group 1", "Group 2"},
 	}
-	cert, err := runCreateAndLoad("subject2", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--subject",
 		"CN=Bla bla bla/C=CH/L=Bern",
 		"--subject",
@@ -80,12 +82,12 @@ func Test_create_subject_multiple(t *testing.T) {
 		"OU=Group 1/OU=Group 2",
 	}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
 	if subject.String() != cert.Subject.String() {
-		t.Errorf("subject no set correctly:\n got: %s\nwant: %s", cert.Subject, subject)
+		t.Fatalf("subject no set correctly:\n got: %s\nwant: %s", cert.Subject, subject)
 	}
 }
 
@@ -100,54 +102,57 @@ func Test_create_subject_combined_with_environment(t *testing.T) {
 		Organization:       []string{"Snakeoil Ltd."},
 		OrganizationalUnit: []string{"Group 1", "Group 2"},
 	}
-	cert, err := runCreateAndLoad("subject3", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--subject",
 		"CN=Bla bla bla",
 		"--subject",
 		"OU=Group 1/OU=Group 2",
 	}, env)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
 	if subject.String() != cert.Subject.String() {
-		t.Errorf("subject no set correctly:\n got: %s\nwant: %s", cert.Subject, subject)
+		t.Fatalf("subject no set correctly:\n got: %s\nwant: %s", cert.Subject, subject)
 	}
 }
 
 func Test_create_not_before(t *testing.T) {
 	notBefore := time.Date(2020, 10, 27, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
-	cert, err := runCreateAndLoad("foo3", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--not-before",
 		"2020-10-27T12:00:00+01:00",
 	}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
 	if !cert.NotBefore.Equal(notBefore) {
-		t.Errorf("not before not set correctly: got: %s, want: %s", cert.NotBefore, notBefore)
+		t.Fatalf("not before not set correctly: got: %s, want: %s", cert.NotBefore, notBefore)
 	}
 
 	notAfter := notBefore.Add(pcert.DefaultValidityPeriod)
 	if !cert.NotAfter.Equal(notAfter) {
-		t.Errorf("not after not set correctly: got: %s, want: %s", cert.NotAfter, notAfter)
+		t.Fatalf("not after not set correctly: got: %s, want: %s", cert.NotAfter, notAfter)
 	}
 }
 
 func Test_create_not_before_and_not_after(t *testing.T) {
 	notBefore := time.Date(2020, 12, 30, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
 	notAfter := time.Date(2022, 12, 30, 12, 0, 0, 0, time.FixedZone("UTC+1", 60*60))
-	cert, err := runCreateAndLoad("foo4", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--not-before",
 		"2020-12-30T12:00:00+01:00",
 		"--not-after",
 		"2022-12-30T12:00:00+01:00",
 	}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
@@ -162,13 +167,13 @@ func Test_create_not_before_and_not_after(t *testing.T) {
 
 func Test_create_with_expiry(t *testing.T) {
 	now := time.Now().Round(time.Minute)
-	cert, err := runCreateAndLoad("foo4", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--expiry",
 		"3y",
 	}, nil)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	actualNotBefore := cert.NotBefore.Round(time.Minute)
@@ -185,14 +190,15 @@ func Test_create_with_expiry(t *testing.T) {
 
 func Test_create_not_before_with_expiry(t *testing.T) {
 	notBefore := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	cert, err := runCreateAndLoad("foo4", []string{
+	cert, err := runAndLoad([]string{
+		"create",
 		"--not-before",
 		"2020-01-01T00:00:00Z",
 		"--expiry",
 		"90d",
 	}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
@@ -207,30 +213,23 @@ func Test_create_not_before_with_expiry(t *testing.T) {
 }
 
 func Test_create_output_parameter(t *testing.T) {
-	name := "foo2"
-	certFile := "mycert_foo2"
-	keyFile := "mykey_foo2"
-	defer os.Remove(certFile)
-	defer os.Remove(keyFile)
-	err := runCmd([]string{
+	defer os.Remove("tls.crt")
+	defer os.Remove("tls.key")
+	_, _, _, err := runCmd([]string{
 		"create",
-		name,
-		"--cert",
-		certFile,
-		"--key",
-		keyFile,
+		"tls.crt",
 	}, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 		return
 	}
 
-	_, err = pcert.Load(certFile)
+	_, err = pcert.Load("tls.crt")
 	if err != nil {
 		t.Errorf("could not load certificate: %s", err)
 	}
 
-	_, err = pcert.LoadKey(keyFile)
+	_, err = pcert.LoadKey("tls.key")
 	if err != nil {
 		t.Errorf("could not load key: %s", err)
 	}

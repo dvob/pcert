@@ -16,7 +16,7 @@ import (
 
 type createCommand struct {
 	Out io.Writer
-	In  io.Writer
+	In  io.Reader
 
 	CertificateOutputLocation string
 	KeyOutputLocation         string
@@ -41,8 +41,6 @@ func getKeyRelativeToCert(certPath string) string {
 
 func newCreate2Cmd() *cobra.Command {
 	createCommand := &createCommand{
-		Out:                       os.Stdout,
-		In:                        os.Stdin,
 		CertificateOutputLocation: "",
 		KeyOutputLocation:         "",
 		SignCertificateLocation:   "",
@@ -63,6 +61,8 @@ pcert create tls.crt
 `,
 		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			createCommand.In = cmd.InOrStdin()
+			createCommand.Out = cmd.OutOrStdout()
 			// default key output file relative to certificate
 			if len(args) == 1 && args[0] != "-" {
 				createCommand.CertificateOutputLocation = args[0]
@@ -103,7 +103,7 @@ pcert create tls.crt
 			if createCommand.SignCertificateLocation != "" {
 				slog.Info("process signer")
 				if createCommand.SignCertificateLocation == "-" {
-					stdin, err = io.ReadAll(os.Stdin)
+					stdin, err = io.ReadAll(createCommand.In)
 					if err != nil {
 						return err
 					}
@@ -157,7 +157,10 @@ pcert create tls.crt
 			}
 
 			if createCommand.CertificateOutputLocation == "" || createCommand.CertificateOutputLocation == "-" {
-				createCommand.Out.Write(certPEM)
+				_, err := createCommand.Out.Write(certPEM)
+				if err != nil {
+					return err
+				}
 			} else {
 				err := os.WriteFile(createCommand.CertificateOutputLocation, certPEM, 0664)
 				if err != nil {

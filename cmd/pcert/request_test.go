@@ -1,33 +1,30 @@
 package main
 
 import (
-	"crypto/x509"
-	"os"
 	"testing"
 
 	"github.com/dvob/pcert"
 )
 
-func runRequestAndLoad(name string, args []string, env map[string]string) (*x509.CertificateRequest, error) {
-	defer os.Remove(name + ".csr")
-	defer os.Remove(name + ".key")
-	fullArgs := []string{"request", name}
-	fullArgs = append(fullArgs, args...)
-	err := runCmd(fullArgs, env)
+func Test_request(t *testing.T) {
+	name := "foo"
+	_, stdout, stderr, err := runCmd([]string{
+		"request",
+		"--subject",
+		"/CN=" + name,
+	}, nil)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
+		return
 	}
 
-	csr, err := pcert.LoadCSR(name + ".csr")
-	return csr, err
-}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr not empty '%s'", stderr.String())
+	}
 
-func Test_request(t *testing.T) {
-	name := "csr1"
-	csr, err := runRequestAndLoad(name, []string{}, nil)
+	csr, err := pcert.ParseCSR(stdout.Bytes())
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	if csr.Subject.CommonName != name {

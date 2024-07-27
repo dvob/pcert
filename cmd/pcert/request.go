@@ -11,30 +11,28 @@ import (
 
 func newRequestCmd() *cobra.Command {
 	var (
-		csrFile string
-		csr     = &x509.CertificateRequest{}
-		key     = &key{}
+		csrOutput string
+		csr       = &x509.CertificateRequest{}
+
+		keyOutput string
+		keyOpts   = pcert.KeyOptions{}
 	)
 	cmd := &cobra.Command{
-		Use:   "request <name>",
-		Short: "Create a certificate signing request (CSR)",
-		Long:  "Creates a CSR and a coresponding key.",
-		Args:  cobra.ExactArgs(1),
+		Use:   "request [OUTPUT-CSR [OUTPUT-KEY]]",
+		Short: "Create a certificate signing request (CSR) and key",
+		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-			if csr.Subject.CommonName == "" {
-				csr.Subject.CommonName = name
+			if len(args) == 1 && args[0] != "-" {
+				csrOutput = args[0]
+				keyOutput = getKeyRelativeToCert(args[0])
 			}
 
-			if csrFile == "" {
-				csrFile = name + csrFileSuffix
+			if len(args) == 2 {
+				csrOutput = args[0]
+				keyOutput = args[1]
 			}
 
-			if key.path == "" {
-				key.path = name + keyFileSuffix
-			}
-
-			csrDER, privateKey, err := pcert.CreateRequestWithKeyOptions(csr, key.opts)
+			csrDER, privateKey, err := pcert.CreateRequestWithKeyOptions(csr, keyOpts)
 			if err != nil {
 				return err
 			}
@@ -46,23 +44,38 @@ func newRequestCmd() *cobra.Command {
 
 			csrPEM := pcert.EncodeCSR(csrDER)
 
-			err = os.WriteFile(key.path, keyPEM, 0600)
-			if err != nil {
-				return fmt.Errorf("failed to write key '%s': %w", key.path, err)
+			if csrOutput == "" || csrOutput == "-" {
+				_, err := cmd.OutOrStdout().Write(csrPEM)
+				if err != nil {
+					return err
+				}
+			} else {
+				err := os.WriteFile(csrOutput, csrPEM, 0664)
+				if err != nil {
+					return fmt.Errorf("failed to write CSR '%s': %w", csrOutput, err)
+				}
 			}
-			err = os.WriteFile(csrFile, csrPEM, 0640)
-			if err != nil {
-				return fmt.Errorf("failed to write CSR '%s': %w", csrFile, err)
+
+			if keyOutput == "" || keyOutput == "-" {
+				_, err := cmd.OutOrStdout().Write(keyPEM)
+				if err != nil {
+					return err
+				}
+			} else {
+				err = os.WriteFile(keyOutput, keyPEM, 0600)
+				if err != nil {
+					return fmt.Errorf("failed to write key '%s': %w", keyOutput, err)
+				}
 			}
 			return nil
 		},
 	}
 
-	key.bindFlags(cmd)
+	BindKeyFlags(cmd.Flags(), &keyOpts)
+	RegisterKeyCompletionFuncs(cmd)
 
 	BindCertificateRequestFlags(cmd.Flags(), csr)
 	RegisterCertificateRequestCompletionFuncs(cmd)
-	cmd.Flags().StringVar(&csrFile, "csr", "", "Output file for the CSR. Defaults to <name>.csr")
 
 	return cmd
 }

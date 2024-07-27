@@ -69,8 +69,11 @@ func BindCertificateOptionsFlags(fs *pflag.FlagSet, co *pcert.CertificateOptions
 	fs.IPSliceVar(&co.IPAddresses, "ip", []net.IP{}, "IP subject alternative name.")
 	fs.Var(newURISliceValue(&co.URIs), "uri", "URI subject alternative name.")
 	fs.Var(newSignAlgValue(&co.SignatureAlgorithm), "sign-alg", "Signature Algorithm. See 'pcert list' for available algorithms.")
+
 	fs.Var(newTimeValue(&co.NotBefore), "not-before", fmt.Sprintf("Not valid before time in RFC3339 format (e.g. '%s').", time.Now().UTC().Format(time.RFC3339)))
 	fs.Var(newTimeValue(&co.NotAfter), "not-after", fmt.Sprintf("Not valid after time in RFC3339 format (e.g. '%s').", time.Now().Add(time.Hour*24*60).UTC().Format(time.RFC3339)))
+	fs.Var(newDurationValue(&co.Expiry), "expiry", "Validity period of the certificate. If --not-after is set this option has no effect.")
+
 	fs.Var(newSubjectValue(&co.Subject), "subject", "Subject in the form '/C=CH/O=My Org/OU=My Team'.")
 
 	//fs.BoolVar(&co.BasicConstraintsValid, "basic-constraints", cert.BasicConstraintsValid, "Add basic constraints extension.")

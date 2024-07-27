@@ -3,19 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-func WithEnv(c *cobra.Command) *cobra.Command {
+func WithEnv(c *cobra.Command, args []string, getEnv func(name string) (string, bool)) *cobra.Command {
 	if c.HasParent() {
 		c = c.Root()
 	}
-
-	args := os.Args[1:]
 
 	var (
 		cmd *cobra.Command
@@ -41,7 +38,7 @@ func WithEnv(c *cobra.Command) *cobra.Command {
 			optName := strings.ToUpper(f.Name)
 			optName = strings.ReplaceAll(optName, "-", "_")
 			varName := envVarPrefix + optName
-			if val, ok := os.LookupEnv(varName); ok {
+			if val, ok := getEnv(varName); ok {
 				err := f.Value.Set(val)
 				if err != nil {
 					errs = append(errs, fmt.Errorf("invalid environment variable '%s': %w", varName, err))
