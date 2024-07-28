@@ -81,7 +81,7 @@ func ExampleCreateWithKeyOptions() {
 		Size:      4096,
 	}
 
-	certDER, key, err := CreateWithKeyOptions(cert, keyOptions, nil, nil)
+	certDER, key, err := CreateCertificateWithKeyOptions(cert, keyOptions, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
