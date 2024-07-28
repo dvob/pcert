@@ -60,7 +60,7 @@ func newSignCmd() *cobra.Command {
 			// SignCert
 			data, err = readStdinOrFile(opts.SignCert, stdin)
 			if os.IsNotExist(err) && opts.SignCert == defaultSignCertLocation {
-				return fmt.Errorf("sign cert '%s' does not exist. set --sign-cert accordingly.", opts.SignCert)
+				return fmt.Errorf("sign cert '%s' does not exist. set --sign-cert accordingly", opts.SignCert)
 			} else if err != nil {
 				return err
 			}

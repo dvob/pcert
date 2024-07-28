@@ -8,5 +8,3 @@ require (
 )
 
 require github.com/inconshreveable/mousetrap v1.1.0 // indirect
-
-replace github.com/spf13/cobra => ../cobra
