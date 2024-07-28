@@ -73,7 +73,7 @@ func ExampleCreate_signed() {
 }
 
 // Create a self-signed certificate with a 4096 bit RSA key
-func ExampleCreateWithKeyOptions() {
+func ExampleCreateCertificateWithKeyOptions() {
 	cert := NewServerCertificate("localhost")
 
 	keyOptions := KeyOptions{
