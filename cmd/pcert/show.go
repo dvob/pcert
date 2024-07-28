@@ -166,7 +166,7 @@ func printText(c *x509.Certificate) {
 
 func printJSON(cert *x509.Certificate) {
 	// TODO: implement proper JSON encoding
-	jsonCert := &JSONCertificate{cert}
+	jsonCert := &jsonCertificate{cert}
 	out, err := json.MarshalIndent(jsonCert, "", "  ")
 	if err != nil {
 		// should never fail because all fields are marshalable
@@ -175,11 +175,11 @@ func printJSON(cert *x509.Certificate) {
 	fmt.Printf("%s\n", out)
 }
 
-type JSONCertificate struct {
+type jsonCertificate struct {
 	*x509.Certificate
 }
 
-func (c *JSONCertificate) MarshalJSON() ([]byte, error) {
+func (c *jsonCertificate) MarshalJSON() ([]byte, error) {
 	publicKeyInfo := map[string]any{
 		"algorithm": c.PublicKeyAlgorithm.String(),
 	}

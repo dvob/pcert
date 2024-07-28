@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func WithEnv(c *cobra.Command, args []string, getEnv func(name string) (string, bool)) *cobra.Command {
+func withEnv(c *cobra.Command, args []string, getEnv func(name string) (string, bool)) *cobra.Command {
 	if c.HasParent() {
 		c = c.Root()
 	}

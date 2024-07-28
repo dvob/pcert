@@ -21,15 +21,17 @@ const (
 	DefaultValidityPeriod = time.Hour * 24 * 365
 )
 
-// Create creates a x509.Certificate and a key with the default key options. See CreateWithKeyOptions for more details.
+// CreateCertificate creates a x509.Certificate and a key with the default key
+// options. See CreateCertificateWithKeyOptions for more details.
 func CreateCertificate(cert, signCert *x509.Certificate, signKey crypto.PrivateKey) (certDER []byte, privateKey crypto.PrivateKey, err error) {
-	return CreateWithKeyOptions(cert, KeyOptions{}, signCert, signKey)
+	return CreateCertificateWithKeyOptions(cert, KeyOptions{}, signCert, signKey)
 }
 
-// CreateCertificateWithKeyOptions creates a key and certificate. The certificate is signed
-// used signCert and signKey. If signCert or signKey are nil, a self-signed
-// certificate will be created. The certificate and the key are returned PEM encoded.
-func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCert *x509.Certificate, signKey crypto.PrivateKey) (certDER []byte, privateKey crypto.PrivateKey, err error) {
+// CreateCertificateWithKeyOptions creates a key and certificate. The
+// certificate is signed used signCert and signKey. If signCert or signKey are
+// nil, a self-signed certificate will be created. The certificate and the key
+// are returned PEM encoded.
+func CreateCertificateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCert *x509.Certificate, signKey crypto.PrivateKey) (certDER []byte, privateKey crypto.PrivateKey, err error) {
 	priv, pub, err := GenerateKey(keyOptions)
 	if err != nil {
 		return nil, nil, err
@@ -55,13 +57,13 @@ func CreateWithKeyOptions(cert *x509.Certificate, keyOptions KeyOptions, signCer
 	return certDER, priv, err
 }
 
-// Request creates a CSR and a key. The key is created with the default key
-// options. See RequestWithKeyOptions for more details.
+// CreateRequest creates a CSR and a key. The key is created with the default key
+// options. See CreateRequestWithKeyOptions for more details.
 func CreateRequest(csr *x509.CertificateRequest) (csrPEM []byte, privateKey crypto.PrivateKey, err error) {
 	return CreateRequestWithKeyOptions(csr, KeyOptions{})
 }
 
-// RequestWithKeyOptions creates a CSR and a key based on key options.  The key is
+// CreateRequestWithKeyOptions creates a CSR and a key based on key options.  The key is
 // created with the default key options.
 func CreateRequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOptions) (csrPEM []byte, privateKey crypto.PrivateKey, err error) {
 	priv, _, err := GenerateKey(keyOptions)
@@ -77,7 +79,7 @@ func CreateRequestWithKeyOptions(csr *x509.CertificateRequest, keyOptions KeyOpt
 	return csrDER, priv, nil
 }
 
-// SignCSR applies the settings from csr and return the signed certificate
+// CreateCertificateWithCSR applies the settings from csr and return the signed certificate
 func CreateCertificateWithCSR(csr *x509.CertificateRequest, cert, signCert *x509.Certificate, signKey any) (certDER []byte, err error) {
 	// TODO: settings from cert should take precedence
 	applyCSR(csr, cert)
@@ -140,6 +142,10 @@ func generateSerial() (*big.Int, error) {
 	return nil, errors.New("x509: failed to generate serial number because the random source returns only zeros")
 }
 
+// NewCertificate returns a *x509.Certificate with settings set based on
+// CertificateOptions. Further it sets certain defaults if they were not set explicitly:
+// - Expiration one year from now
+// - Random serial number
 func NewCertificate(opts *CertificateOptions) *x509.Certificate {
 	if opts == nil {
 		opts = &CertificateOptions{}
@@ -231,13 +237,9 @@ type CertificateOptions struct {
 
 	BasicConstraintsValid bool
 	IsCA                  bool
-	// if nil MaxPathLen = 0, MaxPathLenZero = false
-	// else: MaxPathLen = *this, MaxPathLenZero = true
-	MaxPathLen *int
+	MaxPathLen            *int
 
-	// if CA defaults to sha something something
-	SubjectKeyId []byte
-	// gets defaulted to parent.SubjectKeyID
+	SubjectKeyId   []byte
 	AuthorityKeyId []byte
 
 	OCSPServer            []string

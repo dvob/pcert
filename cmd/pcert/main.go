@@ -32,7 +32,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer, getEnv func(s
 	rootCmd.SetErr(stderr)
 	rootCmd.SetIn(stdin)
 
-	rootCmd = WithEnv(rootCmd, args, getEnv)
+	rootCmd = withEnv(rootCmd, args, getEnv)
 	rootCmd.SetArgs(args)
 
 	err := rootCmd.Execute()
