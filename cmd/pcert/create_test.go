@@ -14,7 +14,6 @@ import (
 )
 
 func runCmd(args []string, stdin io.Reader, env map[string]string) (*bytes.Buffer, *bytes.Buffer, error) {
-
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 

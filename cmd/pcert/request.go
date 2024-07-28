@@ -48,11 +48,11 @@ func newRequestCmd() *cobra.Command {
 
 			csrPEM := pcert.EncodeCSR(csrDER)
 
-			err = writeStdoutOrFile(opts.CSR, csrPEM, 0664, cmd.OutOrStdout())
+			err = writeStdoutOrFile(opts.CSR, csrPEM, 0o664, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
-			err = writeStdoutOrFile(opts.Key, keyPEM, 0600, cmd.OutOrStdout())
+			err = writeStdoutOrFile(opts.Key, keyPEM, 0o600, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

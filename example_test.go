@@ -24,11 +24,11 @@ func ExampleCreate_selfSigned() {
 
 	certPEM := Encode(certDER)
 
-	err = os.WriteFile("server.crt", certPEM, 0644)
+	err = os.WriteFile("server.crt", certPEM, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = os.WriteFile("server.crt", keyPEM, 0600)
+	err = os.WriteFile("server.crt", keyPEM, 0o600)
 	if err != nil {
 		log.Fatal(err)
 	}

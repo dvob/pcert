@@ -25,7 +25,7 @@ func main() {
 	os.Exit(code)
 }
 
-func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, getEnv func(string) (string, bool)) int {
+func run(args []string, stdin io.Reader, stdout, stderr io.Writer, getEnv func(string) (string, bool)) int {
 	rootCmd := newRootCmd()
 
 	rootCmd.SetOut(stdout)

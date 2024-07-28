@@ -149,12 +149,12 @@ pcert create tls.crt
 				return err
 			}
 
-			err = writeStdoutOrFile(opts.Cert, certPEM, 0644, cmd.OutOrStdout())
+			err = writeStdoutOrFile(opts.Cert, certPEM, 0o644, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
 
-			err = writeStdoutOrFile(opts.Key, keyPEM, 0644, cmd.OutOrStdout())
+			err = writeStdoutOrFile(opts.Key, keyPEM, 0o644, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}

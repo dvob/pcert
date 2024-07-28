@@ -95,7 +95,7 @@ func newSignCmd() *cobra.Command {
 
 			certPEM := pcert.Encode(certDER)
 
-			err = writeStdoutOrFile(opts.Cert, certPEM, 0644, cmd.OutOrStdout())
+			err = writeStdoutOrFile(opts.Cert, certPEM, 0o644, cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
