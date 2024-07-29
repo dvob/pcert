@@ -10,8 +10,10 @@ import (
 
 func createAndParse(name string, signCert *x509.Certificate, signKey crypto.PrivateKey) (*x509.Certificate, crypto.PrivateKey, error) {
 	crt := NewCertificate(&CertificateOptions{
-		Subject: pkix.Name{
-			CommonName: name,
+		Certificate: x509.Certificate{
+			Subject: pkix.Name{
+				CommonName: name,
+			},
 		},
 	})
 
