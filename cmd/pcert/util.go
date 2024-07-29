@@ -33,22 +33,6 @@ func (s *stdinKeeper) read() ([]byte, error) {
 	return s.data, nil
 }
 
-func setProfiles(profiles []string, cert *x509.Certificate) error {
-	for _, p := range profiles {
-		switch p {
-		case "client":
-			pcert.SetClientProfile(cert)
-		case "server":
-			pcert.SetServerProfile(cert)
-		case "ca":
-			pcert.SetCAProfile(cert)
-		default:
-			return fmt.Errorf("unknown profile '%s'", p)
-		}
-	}
-	return nil
-}
-
 func readStdinOrFile(name string, stdin *stdinKeeper) ([]byte, error) {
 	if isFile(name) {
 		return os.ReadFile(name)
