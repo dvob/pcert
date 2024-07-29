@@ -20,6 +20,11 @@ func registerCertFlags(cmd *cobra.Command, certOpts *pcert.CertificateOptions) {
 }
 
 func bindCertFlags(fs *pflag.FlagSet, co *pcert.CertificateOptions) {
+	// Profiles
+	fs.BoolVar(&co.ProfileCA, "ca", co.ProfileCA, "set settings which are typical for a CA certificate")
+	fs.BoolVar(&co.ProfileServer, "server", co.ProfileServer, "set settings which are typical for a server certificate")
+	fs.BoolVar(&co.ProfileClient, "client", co.ProfileClient, "set settings which are typical for a client certificate")
+
 	// SAN
 	fs.StringSliceVar(&co.DNSNames, "dns", []string{}, "DNS subject alternative name.")
 	fs.StringSliceVar(&co.EmailAddresses, "email", []string{}, "Email subject alternative name.")
@@ -41,7 +46,7 @@ func bindCertFlags(fs *pflag.FlagSet, co *pcert.CertificateOptions) {
 	// basic constraints
 	fs.BoolVar(&co.BasicConstraintsValid, "basic-constraints", co.BasicConstraintsValid, "Add basic constraints extension.")
 	fs.BoolVar(&co.IsCA, "is-ca", co.IsCA, "Mark certificate as CA in the basic constraints. Only takes effect if --basic-constraints is true.")
-	fs.Var(newMaxPathLengthValue(co.MaxPathLen), "max-path-length", "Sets the max path length in the basic constraints.")
+	fs.Var(newMaxPathLengthValue(&co.Certificate), "max-path-length", "Sets the max path length in the basic constraints.")
 
 	// key usage
 	fs.Var(newKeyUsageValue(&co.KeyUsage), "key-usage", "Set the key usage. See 'pcert list' for available key usages.")

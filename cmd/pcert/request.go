@@ -21,7 +21,7 @@ type requestOptions struct {
 func newRequestCmd() *cobra.Command {
 	opts := &requestOptions{}
 	cmd := &cobra.Command{
-		Use:   "request [OUTPUT-CSR [OUTPUT-KEY]]",
+		Use:   "request [CSR-OUT [KEY-OUT]]",
 		Short: "Create a certificate signing request (CSR) and key",
 		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

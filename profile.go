@@ -13,8 +13,10 @@ const (
 // and typical client certificate settings are set (see SetClientProfile function).
 func NewClientCertificate(name string) *x509.Certificate {
 	cert := NewCertificate(&CertificateOptions{
-		Subject: pkix.Name{
-			CommonName: name,
+		Certificate: x509.Certificate{
+			Subject: pkix.Name{
+				CommonName: name,
+			},
 		},
 	})
 	SetClientProfile(cert)
@@ -25,8 +27,10 @@ func NewClientCertificate(name string) *x509.Certificate {
 // and typical server certificate settings are set (see SetServerProfile function).
 func NewServerCertificate(name string) *x509.Certificate {
 	cert := NewCertificate(&CertificateOptions{
-		Subject: pkix.Name{
-			CommonName: name,
+		Certificate: x509.Certificate{
+			Subject: pkix.Name{
+				CommonName: name,
+			},
 		},
 	})
 	SetServerProfile(cert)
@@ -37,8 +41,10 @@ func NewServerCertificate(name string) *x509.Certificate {
 // typical CA certificate settings are set (see SetCAProfile function).
 func NewCACertificate(name string) *x509.Certificate {
 	cert := NewCertificate(&CertificateOptions{
-		Subject: pkix.Name{
-			CommonName: name,
+		Certificate: x509.Certificate{
+			Subject: pkix.Name{
+				CommonName: name,
+			},
 		},
 	})
 	SetCAProfile(cert)

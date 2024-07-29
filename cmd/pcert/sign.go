@@ -13,7 +13,6 @@ type signOptions struct {
 
 	Cert               string
 	CertificateOptions pcert.CertificateOptions
-	Profiles           []string
 
 	SignCert string
 	SignKey  string
@@ -28,7 +27,7 @@ func newSignCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "sign [INPUT-CSR] [OUTPUT-CERTIFICATE]",
+		Use:   "sign [CSR-IN] [CERT-OUT]",
 		Short: "Create a certificate based on a CSR",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
@@ -83,10 +82,6 @@ func newSignCmd() *cobra.Command {
 
 			// create new certificate
 			cert := pcert.NewCertificate(&opts.CertificateOptions)
-			err = setProfiles(opts.Profiles, cert)
-			if err != nil {
-				return err
-			}
 
 			certDER, err := pcert.CreateCertificateWithCSR(csr, cert, signCert, signKey)
 			if err != nil {
@@ -106,8 +101,6 @@ func newSignCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&opts.SignCert, "sign-cert", "s", opts.SignCert, "Certificate used to sign. If not specified a self-signed certificate is created")
 	cmd.Flags().StringVar(&opts.SignKey, "sign-key", opts.SignKey, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
-
-	cmd.Flags().StringSliceVar(&opts.Profiles, "profile", opts.Profiles, "profile to set on the certificate (server, client, ca)")
 
 	registerCertFlags(cmd, &opts.CertificateOptions)
 

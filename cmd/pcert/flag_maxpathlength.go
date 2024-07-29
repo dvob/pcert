@@ -1,16 +1,17 @@
 package main
 
 import (
+	"crypto/x509"
 	"strconv"
 )
 
 type maxPathLengthValue struct {
-	maxPathLen *int
+	cert *x509.Certificate
 }
 
-func newMaxPathLengthValue(maxPathLen *int) *maxPathLengthValue {
+func newMaxPathLengthValue(cert *x509.Certificate) *maxPathLengthValue {
 	return &maxPathLengthValue{
-		maxPathLen: maxPathLen,
+		cert: cert,
 	}
 }
 
@@ -19,22 +20,30 @@ func (m *maxPathLengthValue) Type() string {
 }
 
 func (m *maxPathLengthValue) String() string {
-	if m.maxPathLen == nil {
+	if m.cert.MaxPathLen == 0 && m.cert.MaxPathLenZero {
+		return "0"
+	}
+	if m.cert.MaxPathLen < 0 {
 		return "-"
 	}
-	return strconv.Itoa(*m.maxPathLen)
+	return strconv.Itoa(m.cert.MaxPathLen)
 }
 
 func (m *maxPathLengthValue) Set(length string) error {
-	var err error
 	if length == "-" {
-		m.maxPathLen = nil
+		m.cert.MaxPathLen = -1
+		m.cert.MaxPathLenZero = false
 	}
 
 	value, err := strconv.Atoi(length)
 	if err != nil {
 		return err
 	}
-	m.maxPathLen = &value
+	if value == 0 {
+		m.cert.MaxPathLenZero = true
+	} else {
+		m.cert.MaxPathLenZero = false
+	}
+	m.cert.MaxPathLen = value
 	return nil
 }

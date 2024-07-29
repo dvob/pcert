@@ -5,13 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"errors"
 	"fmt"
 	"io"
 	"math/big"
-	"net"
-	"net/url"
 	"reflect"
 	"time"
 )
@@ -150,121 +147,47 @@ func NewCertificate(opts *CertificateOptions) *x509.Certificate {
 	if opts == nil {
 		opts = &CertificateOptions{}
 	}
-	cert := &x509.Certificate{
-		SignatureAlgorithm:          opts.SignatureAlgorithm,
-		SerialNumber:                opts.SerialNumber,
-		Subject:                     opts.Subject,
-		NotBefore:                   opts.NotBefore,
-		NotAfter:                    opts.NotAfter,
-		KeyUsage:                    opts.KeyUsage,
-		ExtraExtensions:             opts.ExtraExtensions,
-		ExtKeyUsage:                 opts.ExtKeyUsage,
-		UnknownExtKeyUsage:          opts.UnknownExtKeyUsage,
-		BasicConstraintsValid:       opts.BasicConstraintsValid,
-		IsCA:                        opts.IsCA,
-		SubjectKeyId:                opts.SubjectKeyId,
-		AuthorityKeyId:              opts.AuthorityKeyId,
-		OCSPServer:                  opts.OCSPServer,
-		IssuingCertificateURL:       opts.IssuingCertificateURL,
-		DNSNames:                    opts.DNSNames,
-		EmailAddresses:              opts.EmailAddresses,
-		IPAddresses:                 opts.IPAddresses,
-		URIs:                        opts.URIs,
-		PermittedDNSDomainsCritical: opts.PermittedDNSDomainsCritical,
-		PermittedDNSDomains:         opts.PermittedDNSDomains,
-		ExcludedDNSDomains:          opts.ExcludedDNSDomains,
-		PermittedIPRanges:           opts.PermittedIPRanges,
-		ExcludedIPRanges:            opts.ExcludedIPRanges,
-		PermittedEmailAddresses:     opts.PermittedEmailAddresses,
-		ExcludedEmailAddresses:      opts.ExcludedEmailAddresses,
-		PermittedURIDomains:         opts.PermittedURIDomains,
-		ExcludedURIDomains:          opts.ExcludedURIDomains,
-		CRLDistributionPoints:       opts.CRLDistributionPoints,
-		PolicyIdentifiers:           opts.PolicyIdentifiers,
-		Policies:                    opts.Policies,
-	}
 
-	if opts.MaxPathLen == nil {
-		cert.MaxPathLen = -1
-		cert.MaxPathLenZero = false
-	} else if *opts.MaxPathLen == 0 {
-		cert.MaxPathLen = 0
-		cert.MaxPathLenZero = true
-	} else {
-		cert.MaxPathLen = *opts.MaxPathLen
-		cert.MaxPathLenZero = false
+	if opts.NotBefore.IsZero() {
+		opts.NotBefore = time.Now()
 	}
-
-	if cert.NotBefore.IsZero() {
-		cert.NotBefore = time.Now()
-	}
-	if cert.NotAfter.IsZero() {
+	if opts.NotAfter.IsZero() {
 		if opts.Expiry == 0 {
-			cert.NotAfter = cert.NotBefore.Add(DefaultValidityPeriod)
+			opts.NotAfter = opts.NotBefore.Add(DefaultValidityPeriod)
 		} else {
-			cert.NotAfter = cert.NotBefore.Add(opts.Expiry)
+			opts.NotAfter = opts.NotBefore.Add(opts.Expiry)
 		}
 	}
 
-	if cert.SerialNumber == nil {
+	if opts.ProfileCA {
+		SetCAProfile(&opts.Certificate)
+	}
+	if opts.ProfileServer {
+		SetServerProfile(&opts.Certificate)
+	}
+	if opts.ProfileClient {
+		SetClientProfile(&opts.Certificate)
+	}
+
+	if opts.SerialNumber == nil {
 		var err error
-		cert.SerialNumber, err = generateSerial()
+		opts.SerialNumber, err = generateSerial()
 		if err != nil {
 			// reading randomness failed
 			panic(err.Error())
 		}
 	}
-	return cert
+	return &opts.Certificate
 }
 
 // CertificateOptions represents all options which can be set using
 // CreateCertificate (see Go docs of it). Further it offers Expiry to set a
 // validity duration instead of absolute times.
 type CertificateOptions struct {
-	SignatureAlgorithm x509.SignatureAlgorithm
+	Expiry        time.Duration
+	ProfileServer bool
+	ProfileClient bool
+	ProfileCA     bool
 
-	SerialNumber *big.Int
-	Subject      pkix.Name
-
-	NotBefore, NotAfter time.Time // Validity bounds.
-	Expiry              time.Duration
-
-	KeyUsage    x509.KeyUsage
-	ExtKeyUsage []x509.ExtKeyUsage // Sequence of extended key usages.
-
-	ExtraExtensions    []pkix.Extension
-	UnknownExtKeyUsage []asn1.ObjectIdentifier // Encountered extended key usages unknown to this package.
-
-	BasicConstraintsValid bool
-	IsCA                  bool
-	MaxPathLen            *int
-
-	SubjectKeyId   []byte
-	AuthorityKeyId []byte
-
-	OCSPServer            []string
-	IssuingCertificateURL []string
-
-	// SAN
-	DNSNames       []string
-	EmailAddresses []string
-	IPAddresses    []net.IP
-	URIs           []*url.URL
-
-	// Name constraints
-	PermittedDNSDomainsCritical bool // if true then the name constraints are marked critical.
-	PermittedDNSDomains         []string
-	ExcludedDNSDomains          []string
-	PermittedIPRanges           []*net.IPNet
-	ExcludedIPRanges            []*net.IPNet
-	PermittedEmailAddresses     []string
-	ExcludedEmailAddresses      []string
-	PermittedURIDomains         []string
-	ExcludedURIDomains          []string
-
-	// CRL Distribution Points
-	CRLDistributionPoints []string
-
-	PolicyIdentifiers []asn1.ObjectIdentifier
-	Policies          []x509.OID
+	x509.Certificate
 }

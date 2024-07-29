@@ -31,10 +31,6 @@ type createOptions struct {
 	// key is searchd alongside the certificate.
 	SignKey string
 
-	// Profiles are special certificate settings to set. E.g. client,
-	// server or CA.
-	Profiles []string
-
 	// CertificateOptions certificate settings.
 	CertificateOptions pcert.CertificateOptions
 
@@ -62,16 +58,21 @@ func newCreateCmd() *cobra.Command {
 		KeyOptions:         pcert.KeyOptions{},
 	}
 	cmd := &cobra.Command{
-		Use:   "create [OUTPUT-CERTIFICATE [OUTPUT-KEY]]",
+		Use:   "create [CERT-OUT [KEY-OUT]]",
 		Short: "Create a key and certificate",
-		Long: `Creates a key and certificate. If OUTPUT-CERTIFICATE and OUTPUT-KEY are specified
+		Long: `Creates a key and certificate. If CERT-OUT and KEY-OUT are specified
 the certificate and key are stored in the respective files. If only
-OUTPUT-CERTIFICATE is specifed the key is stored next to the certificate. For
-example the following invocation would store the certificate in tls.crt and the
-key in tls.key:
-
-pcert create tls.crt
+CERT-OUT is specifed the key is stored in the same directory in a file ending
+with .key.
 `,
+		Example: `  # write self-signed cert and key to stdandard output
+  pcert create
+
+  # sign server certificate
+  pcert create tls.crt --server --dns myserver.example.com
+
+  # sign client certificate
+  pcert create client.crt --client --name "my client"`,
 		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			stdin := &stdinKeeper{
@@ -97,11 +98,6 @@ pcert create tls.crt
 			}
 
 			certTemplate := pcert.NewCertificate(&opts.CertificateOptions)
-
-			err := setProfiles(opts.Profiles, certTemplate)
-			if err != nil {
-				return err
-			}
 
 			privateKey, publicKey, err := pcert.GenerateKey(opts.KeyOptions)
 			if err != nil {
@@ -164,7 +160,6 @@ pcert create tls.crt
 	}
 	cmd.Flags().StringVarP(&opts.SignCert, "sign-cert", "s", opts.SignCert, "Certificate used to sign. If not specified a self-signed certificate is created")
 	cmd.Flags().StringVar(&opts.SignKey, "sign-key", opts.SignKey, "Key used to sign. If not specified but --sign-cert is specified we use the key file relative to the certificate specified with --sign-cert.")
-	cmd.Flags().StringSliceVar(&opts.Profiles, "profile", opts.Profiles, "Certificates profiles to apply (server, client, ca)")
 
 	registerCertFlags(cmd, &opts.CertificateOptions)
 	registerKeyFlags(cmd, &opts.KeyOptions)

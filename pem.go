@@ -10,8 +10,10 @@ import (
 const (
 	certificateBlock        = "CERTIFICATE"
 	certificateRequestBlock = "CERTIFICATE REQUEST"
-	privateKeyBlock         = "PRIVATE KEY"
-	ecPrivateKeyBlock       = "EC PRIVATE KEY"
+
+	privateKeyBlock    = "PRIVATE KEY"
+	ecPrivateKeyBlock  = "EC PRIVATE KEY"
+	rsaPrivateKeyBlock = "RSA PRIVATE KEY"
 )
 
 // Load reads a *x509.Certificate from a PEM encoded file.
@@ -45,13 +47,21 @@ func LoadCSR(f string) (*x509.CertificateRequest, error) {
 }
 
 // Parse returns a *x509.Certificate from PEM encoded data.
-func Parse(pem []byte) (*x509.Certificate, error) {
-	block, err := parsePEM(pem)
-	if err != nil {
-		return nil, err
-	}
+func Parse(pemData []byte) (*x509.Certificate, error) {
+	var block *pem.Block
+	for {
+		if len(pemData) == 0 {
+			return nil, fmt.Errorf("no CERTIFICATE found in PEM data")
+		}
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return nil, fmt.Errorf("invalid data is not PEM encoded")
+		}
 
-	return x509.ParseCertificate(block.Bytes)
+		if block.Type == "CERTIFICATE" {
+			return x509.ParseCertificate(block.Bytes)
+		}
+	}
 }
 
 // ParseAll returns a list of x509.Certificates from a list of concatenated PEM
@@ -80,17 +90,26 @@ func ParseAll(data []byte) ([]*x509.Certificate, error) {
 }
 
 // ParseKey returns a *crypto.PrivateKey from PEM encoded data.
-func ParseKey(pem []byte) (key any, err error) {
-	block, err := parsePEM(pem)
-	if err != nil {
-		return nil, err
+func ParseKey(pemData []byte) (key any, err error) {
+	var block *pem.Block
+	for {
+		if len(pemData) == 0 {
+			return nil, fmt.Errorf("no private key found in data")
+		}
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return nil, fmt.Errorf("data is not PEM encoded")
+		}
+		switch block.Type {
+		case privateKeyBlock:
+			return x509.ParsePKCS8PrivateKey(block.Bytes)
+		case ecPrivateKeyBlock:
+			return x509.ParseECPrivateKey(block.Bytes)
+		case rsaPrivateKeyBlock:
+			return x509.ParsePKCS1PrivateKey(block.Bytes)
+		default:
+		}
 	}
-
-	if block.Type == ecPrivateKeyBlock {
-		return x509.ParseECPrivateKey(block.Bytes)
-	}
-
-	return x509.ParsePKCS8PrivateKey(block.Bytes)
 }
 
 // ParseCSR returns a *x509.CertificateRequest from PEM encoded data.
