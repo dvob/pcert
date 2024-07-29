@@ -28,7 +28,7 @@ jobs:
       - name: Install Lint Tools
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install honnef.co/go/tools/cmd/staticcheck@2023.1.7
           go install mvdan.cc/gofumpt@latest
 
       - name: Lint
