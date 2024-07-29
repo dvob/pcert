@@ -1,12 +1,8 @@
 package main
 
 import (
-	"crypto/x509"
-	"fmt"
 	"io"
 	"os"
-
-	"github.com/dvob/pcert"
 )
 
 func isFile(name string) bool {
